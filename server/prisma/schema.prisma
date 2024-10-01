@@ -14,8 +14,8 @@ model User {
   password     String
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
-  messages     Message[]     @relation("UserMessages")
-  participants Participant[]
+  messages     Message[]     @relation("UserMessages") // Messages sent by the user.
+  participants Participant[] // Conversations the user is part of.
   readReceipts ReadReceipt[]
 }
 
