@@ -6,6 +6,7 @@ import initializePassport from "./middleware/passport.js";
 import sessionMiddleware from "./middleware/session.js";
 import authRoutes from "./routes/auth.js";
 import userRoutes from "./routes/user.js";
+import authenticateToken from "./middleware/authenticateToken.js";
 
 //env config
 config();
@@ -27,7 +28,7 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/auth", authRoutes);
-app.use("/api/user", userRoutes);
+app.use("/api/user", authenticateToken, userRoutes);
 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
