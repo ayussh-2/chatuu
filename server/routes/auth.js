@@ -1,10 +1,5 @@
 import express from "express";
-import {
-    loginUser,
-    createUser,
-    googleCallback,
-    createGoogleUser,
-} from "../controllers/user.js";
+import { loginUser, createUser, googleCallback } from "../controllers/user.js";
 import passport from "passport";
 
 const router = express.Router();
@@ -12,8 +7,6 @@ const router = express.Router();
 router.post("/login", loginUser);
 
 router.post("/register", createUser);
-
-router.post("/googleSignup", createGoogleUser);
 
 router.get(
     "/google",

@@ -7,9 +7,13 @@ import prisma from "../config/prisma.js";
 config();
 
 async function createUser(req, res) {
-    const { email, password, name, phone, address } = req.body;
+    const { email, password, username } = req.body;
     try {
-        const existingUser = await User.findOne({ email });
+        const existingUser = await prisma.user.findUnique({
+            where: {
+                email: req.body.email,
+            },
+        });
 
         if (existingUser) {
             return res.status(200).json({
@@ -20,18 +24,19 @@ async function createUser(req, res) {
 
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
-        const newUser = new User({
-            email,
-            name,
-            phone,
-            password: hashedPassword,
-            address,
+        const newUser = await prisma.user.create({
+            data: {
+                username,
+                email,
+                password: hashedPassword,
+                createdAt: new Date().toISOString(),
+            },
         });
-        await newUser.save();
 
         return res.status(201).json({
             message: "User created successfully",
             status: "success",
+            user: { username: newUser.username, email: newUser.email },
             token: generateToken({ email, password }),
         });
     } catch (err) {
@@ -43,7 +48,11 @@ async function loginUser(req, res) {
     const { email, password } = req.body;
 
     try {
-        const user = await User.findOne({ email });
+        const user = await prisma.user.findUnique({
+            where: {
+                email: email,
+            },
+        });
         if (!user) {
             return res.status(401).json({
                 message: "User Not Found",
@@ -65,69 +74,20 @@ async function loginUser(req, res) {
             message: "User logged in successfully",
             status: "success",
             token,
+            user: { username: user.username, email: user.email },
         });
     } catch (err) {
         giveError(err, res);
     }
 }
 
-async function googleCallback(req, res) {
-    const { email, displayName } = req.user;
-    const clientURL = process.env.CLIENT_URL;
-    const existingUser = await User.findOne({ email });
-    if (!existingUser) {
-        res.redirect(
-            clientURL + "/auth/google?email=" + email + "&name=" + displayName
-        );
-    } else {
-        const userLogin = await loginGoogleUser(email, res);
-        return userLogin;
-    }
-}
-
-async function createGoogleUser(req, res) {
-    const { email, name, phone, address } = req.body;
-    try {
-        const existingUser = await User.findOne({ email });
-        if (existingUser) {
-            return res.status(400).json({
-                message: "Email already in use",
-                status: "error",
-            });
-        }
-
-        const otp = generateOTP();
-
-        let password = "google-" + otp;
-
-        password = await bcrypt.hash(password, 10);
-
-        const newUser = new User({
-            email,
-            name,
-            phone,
-            address,
-            password,
-        });
-
-        await newUser.save();
-
-        const jwt = generateToken(newUser.email, newUser.password);
-
-        return res.status(200).json({
-            message: "Registered successfully",
-            status: "success",
-            data: req.body,
-            token: jwt,
-        });
-    } catch (error) {
-        giveError(error, res);
-    }
-}
-
 async function loginGoogleUser(email, res) {
     try {
-        const user = await User.findOne({ email });
+        const user = await prisma.user.findUnique({
+            where: {
+                email: email,
+            },
+        });
 
         if (!user) {
             return res.status(401).json({
@@ -144,31 +104,70 @@ async function loginGoogleUser(email, res) {
     }
 }
 
+async function googleCallback(req, res) {
+    try {
+        const { email, displayName } = req.user;
+        const existingUser = await prisma.user.findUnique({ where: { email } });
+        if (!existingUser) {
+            const password = Math.random().toString(36).slice(-8);
+            const hashedPassword = await bcrypt.hash(password, 10);
+            const createdUser = await prisma.user.create({
+                data: {
+                    email,
+                    username: displayName,
+                    password: hashedPassword,
+                    createdAt: new Date().toISOString(),
+                },
+            });
+            if (createdUser) {
+                const token = generateToken(createdUser);
+                return res.redirect(
+                    process.env.CLIENT_URL + "/api/googleLogin?token=" + token
+                );
+            }
+        } else {
+            const userLogin = await loginGoogleUser(email, res);
+            return userLogin;
+        }
+    } catch (error) {
+        giveError(error, res);
+    }
+}
+
 async function getUserProfile(req, res) {
     const { email } = req.body;
     try {
-        const user = await User.findOne({ email });
+        const user = await prisma.user.findUnique({
+            where: {
+                email: email,
+            },
+        });
         if (!user) {
             return res.status(401).json({
                 message: "User Not Found",
                 status: "error",
             });
         }
+
+        const details = {
+            username: user.username,
+            email: user.email,
+            createdAt: user.createdAt,
+        };
         res.status(200).json({
             message: "User found",
             status: "success",
-            data: user,
+            data: details,
         });
     } catch (error) {
         giveError(error, res);
     }
 }
+
 export {
     createUser,
     loginUser,
     googleCallback,
-    checkOTP,
-    createGoogleUser,
     loginGoogleUser,
     getUserProfile,
 };
