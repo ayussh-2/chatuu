@@ -5,3 +5,6 @@ yarn.lock
 
 prisma/.env
 migrations
+
+
+temp.txt
