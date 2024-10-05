@@ -1,4 +1,4 @@
-import { giveError } from "../utils/giveError.js";
+import { giveError } from "../utils/utils.js";
 import { config } from "dotenv";
 import prisma from "../config/prisma.js";
 config();
@@ -71,6 +71,58 @@ async function searchUsers(req, res) {
             message: "Users found",
             status: "success",
             data: users,
+        });
+    } catch (error) {
+        giveError(error, res);
+    }
+}
+
+async function sendFriendRequest(req, res) {
+    const { friendId, selfId } = req.body;
+
+    try {
+        const userToSendReq = await prisma.user.findUnique({
+            where: { id: friendId },
+        });
+
+        const user = await prisma.user.findUnique({
+            where: { id: selfId },
+        });
+
+        if (!userToSendReq || !user) {
+            return res.status(404).json({
+                message: "User not found",
+                status: "error",
+            });
+        }
+
+        const existingRequest = await prisma.friendRequest.findUnique({
+            where: {
+                senderId_receiverId: {
+                    senderId: selfId,
+                    receiverId: friendId,
+                },
+            },
+        });
+
+        if (existingRequest) {
+            return res.status(400).json({
+                message: "Friend request already sent",
+                status: "error",
+            });
+        }
+
+        const friendRequest = await prisma.friendRequest.create({
+            data: {
+                senderId: selfId,
+                receiverId: friendId,
+            },
+        });
+
+        res.status(200).json({
+            message: "Friend request sent",
+            status: "success",
+            request: friendRequest,
         });
     } catch (error) {
         giveError(error, res);

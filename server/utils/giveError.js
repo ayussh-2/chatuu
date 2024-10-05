@@ -1,4 +1,4 @@
-export const giveError = (err, res) => {
+export default function giveError(err, res) {
     console.error(err);
 
     const errorDetails = err.message || err.meta || err;
@@ -8,4 +8,4 @@ export const giveError = (err, res) => {
         status: "error",
         error: errorDetails,
     });
-};
+}

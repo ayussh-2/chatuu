@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 
-function generateToken(user) {
+export default function generateToken(user) {
     const payload = {
         id: user._id,
         email: user.email,
@@ -16,5 +16,3 @@ function generateToken(user) {
     const token = jwt.sign(payload, secret, options);
     return token;
 }
-
-export { generateToken };

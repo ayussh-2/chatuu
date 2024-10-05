@@ -1,18 +1,25 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
 model User {
   id            Int            @id @default(autoincrement())
   username      String         @unique
   email         String         @unique
   password      String
+  profilePicture String?       
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
-  friends       User[]         @relation("UserFriends")
-  messages      Message[]      @relation("UserMessages") // Messages sent by the user.
-  participants  Participant[]  // Conversations the user is part of.
+  messages      Message[]
+  participants  Participant[]
   readReceipts  ReadReceipt[]
-  friendRequestsSent   FriendRequest[] @relation("Sender") // Friend requests sent by the user.
-  friendRequestsReceived FriendRequest[] @relation("Receiver") // Friend requests received by the user.
-
-  User User[] @relation("UserFriends")
+  sentRequests     FriendRequest[] @relation("Sender")
+  receivedRequests FriendRequest[] @relation("Receiver")
 }
 
 model FriendRequest {
@@ -22,8 +29,8 @@ model FriendRequest {
   status    FriendRequestStatus @default(PENDING)
   sentAt    DateTime @default(now())
   updatedAt DateTime @updatedAt
-  sender    User @relation("Sender", fields: [senderId], references: [id])
-  receiver  User @relation("Receiver", fields: [receiverId], references: [id])
+  sender    User     @relation("Sender", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver  User     @relation("Receiver", fields: [receiverId], references: [id], onDelete: Cascade)
 
   @@unique([senderId, receiverId])
 }
@@ -32,25 +39,30 @@ enum FriendRequestStatus {
   PENDING
   ACCEPTED
   REJECTED
+  CANCELED
 }
 
 model Conversation {
   id           Int           @id @default(autoincrement())
   isGroup      Boolean       @default(false)
   name         String?
+  description  String?       
+  avatarUrl    String?      
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
   participants Participant[]
   messages     Message[]
+  lastMessageId Int?          @unique
+  lastMessage  Message?      @relation("LastMessage", fields: [lastMessageId], references: [id])
 }
 
 model Participant {
-  id             Int           @id @default(autoincrement())
+  id             Int          @id @default(autoincrement())
   userId         Int
   conversationId Int
-  joinedAt       DateTime      @default(now())
-  user           User          @relation(fields: [userId], references: [id])
-  conversation   Conversation  @relation(fields: [conversationId], references: [id])
+  joinedAt       DateTime     @default(now())
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
 
   @@unique([userId, conversationId])
 }
@@ -59,29 +71,23 @@ model Message {
   id             Int           @id @default(autoincrement())
   content        String
   createdAt      DateTime      @default(now())
+  editedAt       DateTime?     
   senderId       Int
   conversationId Int
-  sender         User          @relation("UserMessages", fields: [senderId], references: [id])
-  conversation   Conversation  @relation(fields: [conversationId], references: [id])
+  isDeleted      Boolean       @default(false)
+  sender         User          @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  conversation   Conversation  @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   readReceipts   ReadReceipt[]
-  attachments    Attachment[]
+  lastMessageFor Conversation? @relation("LastMessage")
 }
 
 model ReadReceipt {
-  id        Int       @id @default(autoincrement())
-  messageId Int
-  userId    Int
-  readAt    DateTime  @default(now())
-  message   Message   @relation(fields: [messageId], references: [id])
-  user      User      @relation(fields: [userId], references: [id])
-
-  @@unique([messageId, userId])
-}
-
-model Attachment {
   id        Int      @id @default(autoincrement())
   messageId Int
-  url       String
-  type      String
-  message   Message  @relation(fields: [messageId], references: [id])
+  userId    Int
+  readAt    DateTime @default(now())
+  message   Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId])
 }

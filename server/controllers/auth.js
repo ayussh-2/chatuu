@@ -1,7 +1,6 @@
 import prisma from "../config/prisma.js";
 import bcrypt from "bcrypt";
-import { generateToken } from "../utils/generateToken.js";
-import { giveError } from "../utils/giveError.js";
+import { giveError, generateToken } from "../utils/utils.js";
 import { config } from "dotenv";
 
 config();
@@ -29,7 +28,6 @@ async function createUser(req, res) {
                 username,
                 email,
                 password: hashedPassword,
-                createdAt: new Date().toISOString(),
             },
         });
 
@@ -116,7 +114,6 @@ async function googleCallback(req, res) {
                     email,
                     username: displayName,
                     password: hashedPassword,
-                    createdAt: new Date().toISOString(),
                 },
             });
             if (createdUser) {
@@ -134,4 +131,4 @@ async function googleCallback(req, res) {
     }
 }
 
-export { createUser, loginUser, googleCallback, loginGoogleUser };
+export { createUser, loginUser, googleCallback };
