@@ -76,6 +76,7 @@ async function searchUsers(req, res) {
         giveError(error, res);
     }
 }
+
 async function sendFriendRequest(req, res) {
     const { friendId, selfId } = req.body;
     if (friendId === selfId) {
