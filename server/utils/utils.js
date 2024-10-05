@@ -1,4 +1,4 @@
-import generateToken from "./generateToken";
-import giveError from "./giveError";
+import generateToken from "./generateToken.js";
+import giveError from "./giveError.js";
 
 export { generateToken, giveError };
