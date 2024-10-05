@@ -78,23 +78,17 @@ async function searchUsers(req, res) {
 }
 async function sendFriendRequest(req, res) {
     const { friendId, selfId } = req.body;
-
-    // Check if the user is trying to send a request to themselves
     if (friendId === selfId) {
         return res.status(400).json({
             message: "Cannot send request to yourself",
             status: "error",
         });
     }
-
     try {
-        // Fetch both users in parallel
         const [userToSendReq, user] = await Promise.all([
             prisma.user.findUnique({ where: { id: friendId } }),
             prisma.user.findUnique({ where: { id: selfId } }),
         ]);
-
-        // Check if both users exist
         if (!userToSendReq || !user) {
             return res.status(404).json({
                 message: "User not found",
@@ -102,32 +96,43 @@ async function sendFriendRequest(req, res) {
             });
         }
 
-        // Check for existing friend request
-        const existingRequest = await prisma.friendRequest.findUnique({
+        const existingRequest = await prisma.friendRequest.findFirst({
             where: {
-                senderId_receiverId: {
-                    senderId: selfId,
-                    receiverId: friendId,
-                },
+                OR: [
+                    { senderId: selfId, receiverId: friendId },
+                    { senderId: friendId, receiverId: selfId },
+                ],
             },
         });
 
-        // Handle existing request statuses
         if (existingRequest) {
-            switch (existingRequest.status) {
-                case "PENDING":
+            if (existingRequest.status === "ACCEPTED") {
+                return res.status(400).json({
+                    message: "Already friends",
+                    status: "error",
+                    existingRequest,
+                });
+            }
+
+            if (existingRequest.status === "PENDING") {
+                if (existingRequest.senderId === selfId) {
                     return res.status(400).json({
                         message: "Friend request already sent",
                         status: "error",
                         existingRequest,
                     });
-                case "ACCEPTED":
+                } else {
                     return res.status(400).json({
-                        message: "Already friends",
+                        message:
+                            "You have a pending request from this user. Please respond to it instead.",
                         status: "error",
                         existingRequest,
                     });
-                case "REJECTED":
+                }
+            }
+
+            if (existingRequest.status === "REJECTED") {
+                if (existingRequest.senderId === selfId) {
                     const friendRequest = await prisma.friendRequest.update({
                         where: { id: existingRequest.id },
                         data: {
@@ -139,10 +144,17 @@ async function sendFriendRequest(req, res) {
                         status: "success",
                         request: friendRequest,
                     });
+                } else {
+                    return res.status(400).json({
+                        message:
+                            "You cannot send a request. The other user must initiate.",
+                        status: "error",
+                        existingRequest,
+                    });
+                }
             }
         }
 
-        // Create a new friend request
         const friendRequest = await prisma.friendRequest.create({
             data: {
                 senderId: selfId,
@@ -150,18 +162,13 @@ async function sendFriendRequest(req, res) {
                 status: "PENDING",
             },
         });
-
         return res.status(200).json({
             message: "Friend request sent",
             status: "success",
             request: friendRequest,
         });
     } catch (error) {
-        return res.status(500).json({
-            message: "Internal server error",
-            status: "error",
-            error: error.message,
-        });
+        giveError(error, res);
     }
 }
 
@@ -201,8 +208,6 @@ async function manageFriendRequest(req, res) {
             where: { id: requestId },
             data: { status: action },
         });
-
-        console.log(requestAction);
 
         if (!requestAction) {
             return res.status(400).json({
