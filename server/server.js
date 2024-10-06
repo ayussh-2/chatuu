@@ -41,21 +41,18 @@ app.use(
         req.io = io;
         next();
     },
-    authenticateToken,
+
     roomRoutes
 );
 
-// Socket.IO connection handler
 io.on("connection", (socket) => {
-    console.log("A user connected");
-
-    // Add your socket event handlers here
+    console.log("A user connected " + socket.id);
 
     socket.on("disconnect", () => {
         console.log("User disconnected");
     });
 });
 
-app.listen(PORT, () => {
+httpServer.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
