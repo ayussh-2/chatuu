@@ -5,6 +5,6 @@ yarn.lock
 
 prisma/.env
 migrations
-
+docker-compose.yml
 
 temp.txt

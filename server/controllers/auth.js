@@ -1,5 +1,5 @@
 import prisma from "../config/prisma.js";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import { giveError, generateToken } from "../utils/utils.js";
 import { config } from "dotenv";
 
