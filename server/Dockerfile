@@ -9,6 +9,8 @@ COPY . .
 
 EXPOSE 5000
 
-ENV NODE_ENV=production
+# ENV NODE_ENV=production
+ENV NODE_ENV=development
 
-CMD ["yarn", "start"]
+
+CMD ["yarn", "dev"]

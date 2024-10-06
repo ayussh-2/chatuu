@@ -2,6 +2,7 @@ import prisma from "../config/prisma.js";
 import bcrypt from "bcryptjs";
 import { giveError, generateToken } from "../utils/utils.js";
 import { config } from "dotenv";
+import redisConn from "../config/redis.js";
 
 config();
 
