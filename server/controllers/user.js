@@ -40,6 +40,7 @@ async function getUsers(req, res) {
             select: {
                 username: true,
                 email: true,
+                id: true,
             },
             skip: (page - 1) * limit,
         });

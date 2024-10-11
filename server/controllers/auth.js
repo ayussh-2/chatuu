@@ -2,7 +2,7 @@ import prisma from "../config/prisma.js";
 import bcrypt from "bcryptjs";
 import { giveError, generateToken } from "../utils/utils.js";
 import { config } from "dotenv";
-import redisConn from "../config/redis.js";
+import redisClient from "../config/redis.js";
 
 config();
 
@@ -68,7 +68,14 @@ async function loginUser(req, res) {
         }
 
         const token = generateToken(user);
-
+        (await redisClient).set(
+            token,
+            JSON.stringify({
+                email: user.email,
+                isOnline: true,
+                lastSeen: new Date(),
+            })
+        );
         res.status(200).json({
             message: "User logged in successfully",
             status: "success",
@@ -95,6 +102,11 @@ async function loginGoogleUser(email, res) {
             });
         }
         const token = generateToken(user);
+        JSON.stringify({
+            email: user.email,
+            isOnline: true,
+            lastSeen: new Date(),
+        });
         res.redirect(
             process.env.CLIENT_URL + "/api/googleLogin?token=" + token
         );
