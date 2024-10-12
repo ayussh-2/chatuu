@@ -1,16 +1,19 @@
 import type { Metadata } from "next";
-import localFont from "next/font/local";
 import "./globals.css";
+import "./styles/ui-styles.css";
 import { ThemeProvider } from "@/components/theme-provider";
-const geistSans = localFont({
-    src: "./fonts/GeistVF.woff",
-    variable: "--font-geist-sans",
-    weight: "100 900",
+import { Syne, Inter } from "next/font/google";
+
+const syne = Syne({
+    subsets: ["latin-ext"],
+    weight: ["500", "400", "800", "600", "700"],
+    variable: "--font-syne",
 });
-const geistMono = localFont({
-    src: "./fonts/GeistMonoVF.woff",
-    variable: "--font-geist-mono",
-    weight: "100 900",
+
+const inter = Inter({
+    subsets: ["latin-ext"],
+    weight: ["500", "400", "800", "600", "700"],
+    variable: "--font-inter",
 });
 
 export const metadata: Metadata = {
@@ -25,9 +28,7 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="en">
-            <body
-                className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-            >
+            <body className={`${inter.variable} ${syne.variable} antialiased`}>
                 <ThemeProvider
                     attribute="class"
                     defaultTheme="dark"
