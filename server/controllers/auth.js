@@ -7,7 +7,7 @@ import redisClient from "../config/redis.js";
 config();
 
 async function createUser(req, res) {
-    const { email, password, username } = req.body;
+    const { email, password, username, name } = req.body;
     try {
         const existingUser = await prisma.user.findUnique({
             where: {
@@ -28,6 +28,7 @@ async function createUser(req, res) {
             data: {
                 username,
                 email,
+                name,
                 password: hashedPassword,
             },
         });
@@ -35,7 +36,11 @@ async function createUser(req, res) {
         return res.status(201).json({
             message: "User created successfully",
             status: "success",
-            user: { username: newUser.username, email: newUser.email },
+            user: {
+                username: newUser.username,
+                email: newUser.email,
+                name: newUser.name,
+            },
             token: generateToken({ email, password }),
         });
     } catch (err) {
@@ -102,11 +107,7 @@ async function loginGoogleUser(email, res) {
             });
         }
         const token = generateToken(user);
-        JSON.stringify({
-            email: user.email,
-            isOnline: true,
-            lastSeen: new Date(),
-        });
+
         res.redirect(
             process.env.CLIENT_URL + "/api/googleLogin?token=" + token
         );
@@ -122,10 +123,12 @@ async function googleCallback(req, res) {
         if (!existingUser) {
             const password = Math.random().toString(36).slice(-8);
             const hashedPassword = await bcrypt.hash(password, 10);
+            const trimmedEmailUsername = email.split("@")[0];
             const createdUser = await prisma.user.create({
                 data: {
                     email,
-                    username: displayName,
+                    name: displayName,
+                    username: trimmedEmailUsername,
                     password: hashedPassword,
                 },
             });
