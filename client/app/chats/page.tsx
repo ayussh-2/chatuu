@@ -1,5 +1,8 @@
+"use client";
+import { ShootingStars } from "@/components/ui/shooting-stars";
+
 function Page() {
-    return <div>chats</div>;
+    return <div className="h-screen w-full"></div>;
 }
 
 export default Page;
