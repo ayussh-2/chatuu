@@ -9,45 +9,40 @@ import { validateUser } from "@/utils/validateSchema";
 import { loginFields } from "@/config/auth/auth";
 import { handleLogin } from "@/utils/actions/authHandler";
 import toast from "react-hot-toast";
-import { redirect } from "next/dist/server/api-utils";
 import { useRouter } from "next/navigation";
+import LoadingButton from "../ui/loading-button";
+import { useForm } from "@/hooks/useForm";
 
 export default function LoginForm({ toggleLogin }: LoginFormProps) {
     const router = useRouter();
-    const [user, setUser] = useState({
+    const [loading, setLoading] = useState(false);
+    const { formData, errors, setErrors, handleInputChange } = useForm({
         email: "",
         password: "",
     });
-    const [errors, setErrors] = useState({
-        email: "",
-        password: "",
-    });
-
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target;
-        setErrors((prevErrors) => ({
-            ...prevErrors,
-            [name]: "",
-        }));
-        setUser((prevUser) => ({
-            ...prevUser,
-            [name]: value,
-        }));
-    };
 
     const handleSubmit = async () => {
-        const isValid = validateUser(user, "login", setErrors);
+        const isValid = validateUser(formData, "login", setErrors);
 
         if (isValid) {
-            const loggedIn = await handleLogin(user);
-            if (loggedIn.status !== "error") {
-                toast.success("Login successful");
-                router.push("/chats");
-            } else {
-                toast.error(loggedIn.message);
+            setLoading(true);
+            try {
+                const loggedIn = await handleLogin(formData);
+                if (loggedIn.status !== "error") {
+                    toast.success("Login successful");
+                    router.push("/chats");
+                } else {
+                    toast.error(loggedIn.message);
+                }
+            } catch (error) {
+                console.log(error);
+                toast.error("An error occurred");
+            } finally {
+                setLoading(false);
             }
+            setLoading(false);
         } else {
-            console.log("Form validation failed");
+            console.log("Form is invalid");
         }
     };
     return (
@@ -71,7 +66,9 @@ export default function LoginForm({ toggleLogin }: LoginFormProps) {
                             type={field.type}
                             id={field.name}
                             name={field.name}
-                            value={user[field.name as keyof typeof user]}
+                            value={
+                                formData[field.name as keyof typeof formData]
+                            }
                             onChange={handleInputChange}
                             className={
                                 errors[field.name as keyof typeof errors] &&
@@ -85,13 +82,15 @@ export default function LoginForm({ toggleLogin }: LoginFormProps) {
                         )}
                     </div>
                 ))}
-                <Button
-                    type="submit"
-                    className="btn-primary"
+
+                <LoadingButton
+                    loading={loading}
                     onClick={handleSubmit}
+                    disabled={loading}
+                    className="btn-primary"
                 >
                     Login
-                </Button>
+                </LoadingButton>
                 <Button
                     variant="link"
                     className="text-center"

@@ -2,7 +2,7 @@
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { motion } from "framer-motion";
-import { SignupFormProps } from "@/types/auth/auth";
+import { SignupFormProps, UserType } from "@/types/auth/auth";
 import GoogleLogin from "./googleLogin";
 import { signupFields } from "@/config/auth/auth";
 import { useState } from "react";
@@ -10,45 +10,37 @@ import { useRouter } from "next/navigation";
 import { validateUser } from "@/utils/validateSchema";
 import toast from "react-hot-toast";
 import { handleSignup } from "@/utils/actions/authHandler";
+import LoadingButton from "../ui/loading-button";
+import { useForm } from "@/hooks/useForm";
 
 export default function SignupForm({ toggleLogin }: SignupFormProps) {
-    const [user, setUser] = useState({
-        name: "",
-        username: "",
-        email: "",
-        password: "",
-    });
-    const [errors, setErrors] = useState({
-        name: "",
-        username: "",
-        email: "",
-        password: "",
-    });
-
     const router = useRouter();
-
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target;
-        setErrors((prevErrors) => ({
-            ...prevErrors,
-            [name]: "",
-        }));
-        setUser((prevUser) => ({
-            ...prevUser,
-            [name]: value,
-        }));
-    };
+    const [loading, setLoading] = useState(false);
+    const { formData, errors, setErrors, handleInputChange } = useForm({
+        name: "",
+        username: "",
+        email: "",
+        password: "",
+    });
 
     const handleSubmit = async () => {
-        const isValid = validateUser(user, "signup", setErrors);
+        const isValid = validateUser(formData, "signup", setErrors);
 
         if (isValid) {
-            const signUp = await handleSignup(user);
-            if (signUp.status !== "error") {
-                toast.success("Sign up successful");
-                router.push("/chats");
-            } else {
-                toast.error(signUp.message);
+            setLoading(true);
+            try {
+                const signUp = await handleSignup(formData);
+                if (signUp.status !== "error") {
+                    toast.success("Sign up successful");
+                    router.push("/chats");
+                } else {
+                    toast.error(signUp.message);
+                }
+            } catch (error) {
+                console.log(error);
+                toast.error("An error occurred");
+            } finally {
+                setLoading(false);
             }
         } else {
             console.log("Form validation failed");
@@ -75,7 +67,7 @@ export default function SignupForm({ toggleLogin }: SignupFormProps) {
                             type={field.type}
                             id={field.name}
                             name={field.name}
-                            value={user[field.name as keyof typeof user]}
+                            value={formData[field.name as keyof UserType]}
                             onChange={handleInputChange}
                             className={
                                 errors[field.name as keyof typeof errors] &&
@@ -89,13 +81,15 @@ export default function SignupForm({ toggleLogin }: SignupFormProps) {
                         )}
                     </div>
                 ))}
-                <Button
-                    type="submit"
-                    className="btn-primary"
+
+                <LoadingButton
+                    loading={loading}
                     onClick={handleSubmit}
+                    disabled={loading}
+                    className="btn-primary"
                 >
                     Sign Up
-                </Button>
+                </LoadingButton>
                 <Button
                     variant="link"
                     className="text-center"
