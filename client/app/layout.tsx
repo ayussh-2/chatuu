@@ -3,6 +3,7 @@ import "./globals.css";
 import "./styles/ui-styles.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Syne, Inter } from "next/font/google";
+import { Toaster } from "react-hot-toast";
 
 const syne = Syne({
     subsets: ["latin-ext"],
@@ -35,6 +36,22 @@ export default function RootLayout({
                     enableSystem
                     disableTransitionOnChange
                 >
+                    <Toaster
+                        position="top-center"
+                        reverseOrder={false}
+                        toastOptions={{
+                            style: {
+                                background: "rgba(4, 10, 22, 0.5)",
+                                color: "#ffffff",
+                                padding: "16px",
+                                borderRadius: "20px",
+                                boxShadow: "0 4px 15px rgba(0, 5, 15, 0.8)",
+                                backdropFilter: "blur(50px)",
+                                border: "1px solid rgba(255, 255, 255, 0.1)",
+                                fontFamily: "var(--font-inter)",
+                            },
+                        }}
+                    />
                     {children}
                 </ThemeProvider>
             </body>

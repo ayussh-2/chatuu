@@ -5,11 +5,7 @@ import SignupForm from "@/components/auth/signup";
 import LoginForm from "@/components/auth/login";
 import { BackgroundBeams } from "@/components/ui/background-beams";
 import { TextGenerateEffect } from "@/components/ui/text-generate-effect";
-import {
-    handleGoogleLogin,
-    handleLogin,
-    handleSignup,
-} from "@/utils/actions/authHandler";
+import { handleLogin, handleSignup } from "@/utils/actions/authHandler";
 
 export default function Home() {
     const [showForms, setShowForms] = useState(false);
@@ -31,21 +27,19 @@ export default function Home() {
             <div className="grid min-h-screen place-items-center">
                 <AnimatePresence mode="wait">
                     {showForms ? (
-                        <div>
+                        <>
                             {showLogin ? (
                                 <LoginForm
                                     toggleLogin={toggleLogin}
-                                    handleGoogleLogin={handleGoogleLogin}
                                     handleLogin={handleLogin}
                                 />
                             ) : (
                                 <SignupForm
                                     toggleLogin={toggleLogin}
-                                    handleGoogleLogin={handleGoogleLogin}
                                     handleSignup={handleSignup}
                                 />
                             )}
-                        </div>
+                        </>
                     ) : (
                         <motion.div
                             key="welcome"

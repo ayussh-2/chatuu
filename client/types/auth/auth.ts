@@ -1,11 +1,21 @@
 export type SignupFormProps = {
     toggleLogin: () => void;
-    handleSignup: () => void;
-    handleGoogleLogin: () => void;
+    handleSignup: ({
+        email,
+        password,
+        username,
+        name,
+    }: UserType) => Promise<Boolean>;
 };
 
 export type LoginFormProps = {
     toggleLogin: () => void;
-    handleLogin: () => void;
-    handleGoogleLogin: () => void;
+    handleLogin: ({ email, password }: UserType) => Promise<Boolean>;
+};
+
+export type UserType = {
+    email: string;
+    password: string;
+    username?: string;
+    name?: string;
 };
