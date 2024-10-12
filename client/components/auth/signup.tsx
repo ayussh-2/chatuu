@@ -1,10 +1,19 @@
 "use client";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
+import { motion } from "framer-motion";
+import { SignupFormProps } from "@/types/auth/auth";
 
-export default function SignupForm() {
+export default function SignupForm({ toggleLogin }: SignupFormProps) {
     return (
-        <div className="flex flex-col gap-10 backdrop-blur-sm p-10 w-96">
+        <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5 }}
+            key="signup"
+            className="flex flex-col gap-10 backdrop-blur-sm p-10 w-[26rem]"
+        >
             <h2 className="text-4xl font-semibold text-center font-syne">
                 Sign Up
             </h2>
@@ -19,7 +28,18 @@ export default function SignupForm() {
                 <Button type="submit" className="btn-primary">
                     Sign Up
                 </Button>
+                <Button
+                    variant="link"
+                    className="text-center"
+                    onClick={toggleLogin}
+                >
+                    Already have an account? Login
+                </Button>
             </form>
-        </div>
+            <hr />
+            <Button variant="ghost" className="text-center">
+                Continue with Google
+            </Button>
+        </motion.div>
     );
 }

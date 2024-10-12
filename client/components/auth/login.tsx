@@ -1,43 +1,44 @@
 "use client";
+import { Input } from "../ui/input";
+import { Button } from "../ui/button";
 import { motion } from "framer-motion";
+import { LoginFormProps } from "@/types/auth/auth";
 
-const formAnimation = {
-    initial: { opacity: 0, y: 100 },
-    animate: { opacity: 1, y: 0 },
-    transition: {
-        delay: 0.3,
-        duration: 0.8,
-        ease: "easeInOut",
-    },
-};
-
-export default function LoginForm() {
+export default function LoginForm({ toggleLogin }: LoginFormProps) {
     return (
         <motion.div
-            initial={formAnimation.initial}
-            animate={formAnimation.animate}
-            transition={formAnimation.transition}
-            className="mt-8 max-w-md mx-auto p-6 bg-white shadow-md rounded-md"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5 }}
+            key="login"
+            className="flex flex-col gap-10 backdrop-blur-sm p-10 w-[26rem]"
         >
-            <h2 className="text-2xl font-semibold text-center">Login</h2>
-            <form className="mt-6 space-y-4">
-                <input
-                    type="email"
-                    placeholder="Email"
-                    className="w-full p-2 border rounded-md"
-                />
-                <input
-                    type="password"
+            <h2 className="text-4xl font-semibold text-center font-syne">
+                Welcome Back!
+            </h2>
+            <form className="space-y-4 w-full font-inter">
+                <Input placeholder="Email" type="email" />
+                <Input
                     placeholder="Password"
-                    className="w-full p-2 border rounded-md"
+                    type="password"
+                    className="py-5"
                 />
-                <button
-                    type="submit"
-                    className="w-full p-2 bg-blue-600 text-white rounded-md"
-                >
+                <Button type="submit" className="btn-primary">
                     Login
-                </button>
+                </Button>
+                <Button
+                    variant="link"
+                    className="text-center"
+                    onClick={toggleLogin}
+                >
+                    New here? Signup
+                </Button>
             </form>
+            <hr />
+            <Button variant="ghost" className="text-center">
+                Continue with Google
+            </Button>
         </motion.div>
     );
 }
