@@ -6,18 +6,25 @@ import { MessageInput } from "@/components/chat/message-input";
 import Loader from "@/components/loader/Loader";
 import { useApi } from "@/hooks/use-Api";
 import { useEffect } from "react";
+import { useChatStore } from "@/lib/chat-store";
+import StartChatting from "@/components/chat/start-chatting";
 
 export default function Home() {
     const { isLoading, makeRequest } = useApi();
+    const { setContacts, setMessages, activeContactId } = useChatStore();
     async function getUserChats() {
         const response = await makeRequest(
             "POST",
             "/user/chats",
             { userId: 1 },
             "Some Error occoured while fetching chats",
-            true
+            true,
+            false
         );
-        console.log(response);
+        if (!response) return;
+        const { contacts, messages } = response.data;
+        setContacts(contacts);
+        setMessages(messages);
     }
 
     useEffect(() => {
@@ -27,11 +34,15 @@ export default function Home() {
         <main className="h-screen flex bg-background">
             <Loader isLoading={isLoading} />
             <Sidebar />
-            <div className="flex-1 flex flex-col">
-                <ChatHeader />
-                <MessageList />
-                <MessageInput />
-            </div>
+            {activeContactId ? (
+                <div className="flex-1 flex flex-col">
+                    <ChatHeader />
+                    <MessageList />
+                    <MessageInput />
+                </div>
+            ) : (
+                <StartChatting />
+            )}
         </main>
     );
 }

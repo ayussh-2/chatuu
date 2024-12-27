@@ -330,7 +330,6 @@ async function getRecentChats(req, res) {
                                         id: true,
                                         name: true,
                                         username: true,
-                                        profilePicture: true,
                                     },
                                 },
                                 readReceipts: {
@@ -356,57 +355,57 @@ async function getRecentChats(req, res) {
             },
         });
 
-        const formattedChats = userConversations.map(({ conversation }) => {
+        const contacts = [];
+        const messages = {};
+
+        userConversations.forEach(({ conversation }) => {
             const otherParticipant = conversation.participants.find(
                 (p) => p.user.id !== userId
             )?.user;
 
-            return {
-                conversationId: conversation.id,
-                friend: {
-                    id: otherParticipant?.id,
-                    name: otherParticipant?.name,
-                    username: otherParticipant?.username,
-                    profilePicture: otherParticipant?.profilePicture,
-                },
-                lastMessage: conversation.lastMessage
-                    ? {
-                          id: conversation.lastMessage.id,
-                          content: conversation.lastMessage.content,
-                          createdAt: conversation.lastMessage.createdAt,
-                          senderId: conversation.lastMessage.sender.id,
-                          senderName: conversation.lastMessage.sender.name,
-                      }
-                    : null,
-                messages: conversation.messages.map((message) => ({
+            const unreadCount = conversation.messages.filter(
+                (message) =>
+                    !message.readReceipts.length && message.sender.id !== userId
+            ).length;
+
+            contacts.push({
+                id: conversation.id,
+                name: otherParticipant?.name || conversation.name,
+                online: !!otherParticipant?.onlineStatus,
+                unread: unreadCount,
+            });
+
+            messages[conversation.id] = conversation.messages.map(
+                (message) => ({
                     id: message.id,
                     content: message.content,
-                    createdAt: message.createdAt,
-                    editedAt: message.editedAt,
-                    isDeleted: message.isDeleted,
-                    sender: {
-                        id: message.sender.id,
-                        name: message.sender.name,
-                        username: message.sender.username,
-                    },
-                    isRead: message.readReceipts.length > 0,
-                })),
-                isGroup: conversation.isGroup,
-                name: conversation.name,
-                avatarUrl: conversation.avatarUrl,
-            };
+                    senderId: message.sender.id,
+                    time: new Date(message.createdAt).toLocaleTimeString(
+                        "en-US",
+                        {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                        }
+                    ),
+                })
+            );
         });
 
-        const sortedChats = formattedChats.sort((a, b) => {
-            const timeA = a.lastMessage?.createdAt || 0;
-            const timeB = b.lastMessage?.createdAt || 0;
-            return new Date(timeB) - new Date(timeA);
+        contacts.sort((a, b) => {
+            const lastMessageA =
+                userConversations.find((c) => c.conversation.id === a.id)
+                    ?.conversation.lastMessage?.createdAt || 0;
+            const lastMessageB =
+                userConversations.find((c) => c.conversation.id === b.id)
+                    ?.conversation.lastMessage?.createdAt || 0;
+
+            return new Date(lastMessageB) - new Date(lastMessageA);
         });
 
         return {
             statusCode: 200,
             message: "Recent chats retrieved successfully",
-            data: sortedChats,
+            data: { contacts, messages },
         };
     });
 }

@@ -1,7 +1,7 @@
 import cors from "cors";
 
 const corsOptions = {
-    origin: process.env.CLIENT_URL,
+    origin: ["http://localhost:3000"],
     optionsSuccessStatus: 200,
 };
 
