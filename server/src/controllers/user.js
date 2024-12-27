@@ -41,6 +41,24 @@ async function getUsers(req, res) {
                 username: true,
                 email: true,
                 id: true,
+                name: true,
+                createdAt: true,
+                messages: {
+                    select: {
+                        id: true,
+                    },
+                },
+                profilePicture: true,
+                sentRequests: {
+                    select: {
+                        id: true,
+                    },
+                },
+                receivedRequests: {
+                    select: {
+                        id: true,
+                    },
+                },
             },
             skip: (page - 1) * limit,
         });

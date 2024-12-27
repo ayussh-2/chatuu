@@ -37,9 +37,11 @@ async function createUser(req, res) {
             message: "User created successfully",
             status: "success",
             user: {
+                userId: newUser.id,
+                name: newUser.name,
                 username: newUser.username,
                 email: newUser.email,
-                name: newUser.name,
+                profilePicture: newUser.profilePicture,
             },
             token: generateToken({ email, password }),
         });
@@ -85,7 +87,13 @@ async function loginUser(req, res) {
             message: "User logged in successfully",
             status: "success",
             token,
-            user: { username: user.username, email: user.email },
+            user: {
+                userId: user.id,
+                name: user.name,
+                username: user.username,
+                email: user.email,
+                profilePicture: user.profilePicture,
+            },
         });
     } catch (err) {
         giveError(err, res);

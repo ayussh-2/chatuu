@@ -1,4 +1,3 @@
-"use server";
 import { jwtVerify } from "jose";
 export async function decodeJWT(token: string) {
     if (!token) {

@@ -32,6 +32,10 @@ export default function SignupForm({ toggleLogin }: SignupFormProps) {
                 const signUp = await handleSignup(formData);
                 if (signUp.status !== "error") {
                     toast.success("Sign up successful");
+                    localStorage.setItem(
+                        "loggedInChatuuUser",
+                        JSON.stringify(signUp.user)
+                    );
                     router.push("/chats");
                 } else {
                     toast.error(signUp.message);

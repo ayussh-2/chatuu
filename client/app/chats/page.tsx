@@ -1,8 +1,17 @@
-"use client";
-import { ShootingStars } from "@/components/ui/shooting-stars";
+import { Sidebar } from "@/components/chat/sidebar";
+import { ChatHeader } from "@/components/chat/chat-header";
+import { MessageList } from "@/components/chat/message-list";
+import { MessageInput } from "@/components/chat/message-input";
 
-function Page() {
-    return <div className="h-screen w-full"></div>;
+export default function Home() {
+  return (
+    <main className="h-screen flex bg-background">
+      <Sidebar />
+      <div className="flex-1 flex flex-col">
+        <ChatHeader />
+        <MessageList />
+        <MessageInput />
+      </div>
+    </main>
+  );
 }
-
-export default Page;

@@ -1,17 +1,20 @@
 "use client";
-import { Input } from "../ui/input";
-import { Button } from "../ui/button";
-import { motion } from "framer-motion";
-import { LoginFormProps } from "@/types/auth/auth";
-import GoogleLogin from "./googleLogin";
-import { useState } from "react";
-import { validateUser } from "@/utils/validateSchema";
-import { loginFields } from "@/config/auth/auth";
-import { handleLogin } from "@/utils/actions/authHandler";
-import toast from "react-hot-toast";
-import { useRouter } from "next/navigation";
-import LoadingButton from "../ui/loading-button";
-import { useForm } from "@/hooks/useForm";
+import { useState } from 'react';
+
+import { motion } from 'framer-motion';
+import { useRouter } from 'next/navigation';
+import toast from 'react-hot-toast';
+
+import { loginFields } from '@/config/auth/auth';
+import { useForm } from '@/hooks/useForm';
+import { LoginFormProps } from '@/types/auth/auth';
+import { handleLogin } from '@/utils/actions/authHandler';
+import { validateUser } from '@/utils/validateSchema';
+
+import { Button } from '../ui/button';
+import { Input } from '../ui/input';
+import LoadingButton from '../ui/loading-button';
+import GoogleLogin from './googleLogin';
 
 export default function LoginForm({ toggleLogin }: LoginFormProps) {
     const router = useRouter();
@@ -27,12 +30,16 @@ export default function LoginForm({ toggleLogin }: LoginFormProps) {
         if (isValid) {
             setLoading(true);
             try {
-                const loggedIn = await handleLogin(formData);
-                if (loggedIn.status !== "error") {
+                const loggedInStatus = await handleLogin(formData);
+                if (loggedInStatus.status !== "error") {
                     toast.success("Login successful");
+                    localStorage.setItem(
+                        "loggedInChatuuUser",
+                        JSON.stringify(loggedInStatus.user)
+                    );
                     router.push("/chats");
                 } else {
-                    toast.error(loggedIn.message);
+                    toast.error(loggedInStatus.message);
                 }
             } catch (error) {
                 console.log(error);
@@ -87,7 +94,7 @@ export default function LoginForm({ toggleLogin }: LoginFormProps) {
                     loading={loading}
                     onClick={handleSubmit}
                     disabled={loading}
-                    className="btn-primary"
+                    className="btn-primary bg-white"
                 >
                     Login
                 </LoadingButton>
