@@ -17,15 +17,15 @@ export function ChatHeader() {
         >
             <div className="flex items-center space-x-4">
                 <Avatar>
-                    <div className="w-10 h-10 rounded-full bg-secondary text-white flex items-center justify-center">
+                    <div className="w-10 h-10 rounded-full bg-secondary text-white flex items-center justify-center font-syne">
                         {activeContact?.name[0]}
                     </div>
                 </Avatar>
                 <div>
-                    <h2 className="text-sm font-semibold">
+                    <h2 className="text-base font-semibold font-syne">
                         {activeContact?.name}
                     </h2>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-xs text-muted-foreground font-plusJakarta">
                         {activeContact?.online ? "Online" : "Offline"}
                     </p>
                 </div>

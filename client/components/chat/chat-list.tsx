@@ -29,7 +29,7 @@ export function ChatList() {
                     <div className="flex items-center space-x-4">
                         <div className="relative">
                             <Avatar>
-                                <div className="w-10 h-10 rounded-full bg-secondary text-white flex items-center justify-center">
+                                <div className="w-10 h-10 rounded-full bg-secondary text-white flex items-center justify-center font-syne">
                                     {chat.name[0]}
                                 </div>
                             </Avatar>
@@ -39,18 +39,18 @@ export function ChatList() {
                         </div>
                         <div className="flex-1 min-w-0">
                             <div className="flex items-center justify-between">
-                                <p className="text-sm font-medium truncate">
+                                <p className="text-sm font-medium truncate font-syne">
                                     {chat.name}
                                 </p>
                                 {chat.unread > 0 && (
                                     <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center ml-2">
-                                        <span className="text-xs text-primary-foreground">
+                                        <span className="text-xs font-bold text-primary-foreground font-inter">
                                             {chat.unread}
                                         </span>
                                     </div>
                                 )}
                             </div>
-                            <p className="text-sm text-muted-foreground truncate">
+                            <p className="text-sm text-muted-foreground truncate font-plusJakarta">
                                 {getLastMessage(chat.id)}
                             </p>
                         </div>

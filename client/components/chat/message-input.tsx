@@ -1,6 +1,6 @@
 "use client";
 
-import { Send, Paperclip, Smile } from "lucide-react";
+import { Send, Smile } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -33,14 +33,11 @@ export function MessageInput() {
             className="p-4 border-t bg-card/50 backdrop-blur-xl"
         >
             <div className="flex items-end space-x-2">
-                <Button variant="ghost" size="icon">
-                    <Paperclip className="w-5 h-5" />
-                </Button>
                 <Input
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
                     onKeyDown={handleKeyPress}
-                    placeholder="Type your message..."
+                    placeholder="Say something..."
                     className="resize-none bg-background/50"
                 />
                 <Button variant="ghost" size="icon">

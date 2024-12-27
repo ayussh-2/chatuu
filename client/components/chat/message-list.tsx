@@ -37,9 +37,9 @@ export function MessageList() {
                                         : "bg-muted"
                                 }`}
                             >
-                                <p className="text-sm">{message.content}</p>
+                                <p className="text-sm ">{message.content}</p>
                             </div>
-                            <p className="text-xs text-muted-foreground mt-1">
+                            <p className="text-xs text-muted-foreground mt-1 font-plusJakarta">
                                 {message.time}
                             </p>
                         </div>
