@@ -287,6 +287,130 @@ async function getFriends(req, res) {
     });
 }
 
+async function getRecentChats(req, res) {
+    return handleRequest(res, async () => {
+        const { userId } = req.body;
+
+        if (!userId) {
+            return {
+                statusCode: 400,
+                message: "Invalid request",
+                data: null,
+            };
+        }
+
+        // Get all conversations where user is a participant
+        const userConversations = await prisma.participant.findMany({
+            where: {
+                userId: userId,
+            },
+            select: {
+                conversation: {
+                    include: {
+                        participants: {
+                            include: {
+                                user: {
+                                    select: {
+                                        id: true,
+                                        name: true,
+                                        username: true,
+                                        profilePicture: true,
+                                    },
+                                },
+                            },
+                        },
+                        messages: {
+                            orderBy: {
+                                createdAt: "desc",
+                            },
+                            take: 20,
+                            include: {
+                                sender: {
+                                    select: {
+                                        id: true,
+                                        name: true,
+                                        username: true,
+                                        profilePicture: true,
+                                    },
+                                },
+                                readReceipts: {
+                                    where: {
+                                        userId: userId,
+                                    },
+                                },
+                            },
+                        },
+                        lastMessage: {
+                            include: {
+                                sender: {
+                                    select: {
+                                        id: true,
+                                        name: true,
+                                        username: true,
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        });
+
+        const formattedChats = userConversations.map(({ conversation }) => {
+            const otherParticipant = conversation.participants.find(
+                (p) => p.user.id !== userId
+            )?.user;
+
+            return {
+                conversationId: conversation.id,
+                friend: {
+                    id: otherParticipant?.id,
+                    name: otherParticipant?.name,
+                    username: otherParticipant?.username,
+                    profilePicture: otherParticipant?.profilePicture,
+                },
+                lastMessage: conversation.lastMessage
+                    ? {
+                          id: conversation.lastMessage.id,
+                          content: conversation.lastMessage.content,
+                          createdAt: conversation.lastMessage.createdAt,
+                          senderId: conversation.lastMessage.sender.id,
+                          senderName: conversation.lastMessage.sender.name,
+                      }
+                    : null,
+                messages: conversation.messages.map((message) => ({
+                    id: message.id,
+                    content: message.content,
+                    createdAt: message.createdAt,
+                    editedAt: message.editedAt,
+                    isDeleted: message.isDeleted,
+                    sender: {
+                        id: message.sender.id,
+                        name: message.sender.name,
+                        username: message.sender.username,
+                    },
+                    isRead: message.readReceipts.length > 0,
+                })),
+                isGroup: conversation.isGroup,
+                name: conversation.name,
+                avatarUrl: conversation.avatarUrl,
+            };
+        });
+
+        const sortedChats = formattedChats.sort((a, b) => {
+            const timeA = a.lastMessage?.createdAt || 0;
+            const timeB = b.lastMessage?.createdAt || 0;
+            return new Date(timeB) - new Date(timeA);
+        });
+
+        return {
+            statusCode: 200,
+            message: "Recent chats retrieved successfully",
+            data: sortedChats,
+        };
+    });
+}
+
 export {
     getUserProfile,
     getUsers,
@@ -295,4 +419,5 @@ export {
     manageFriendRequest,
     getFriendRequests,
     getFriends,
+    getRecentChats,
 };

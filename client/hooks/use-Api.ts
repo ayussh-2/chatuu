@@ -16,13 +16,14 @@ export const useApi = () => {
         endpoint: string,
         data?: any,
         errorMessage: string = "Request failed",
-        tokenReq: boolean = false
+        tokenReq: boolean = false,
+        showToast: boolean = true
     ): Promise<ApiResponse | null> => {
         setIsLoading(true);
 
         const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
         const url = `${API_URL}${endpoint}`;
-        const token = Cookies.get("quick-serve-token");
+        const token = Cookies.get("chatuu-token");
 
         if (tokenReq && !token) {
             toast.error("Please login again to continue!");
@@ -55,7 +56,8 @@ export const useApi = () => {
                 };
             }
 
-            toast.success(response.data.message || "Request successful");
+            if (showToast)
+                toast.success(response.data.message || "Request successful");
             return {
                 status: "success",
                 data: response.data?.data,

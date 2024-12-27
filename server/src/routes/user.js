@@ -6,6 +6,7 @@ import {
     sendFriendRequest,
     getFriends,
     getFriendRequests,
+    getRecentChats,
 } from "../controllers/user.js";
 import express from "express";
 
@@ -18,5 +19,5 @@ router.post("/send-request", sendFriendRequest);
 router.post("/manage-requests", manageFriendRequest);
 router.post("/friends", getFriends);
 router.post("/requests", getFriendRequests);
-
+router.post("/chats", getRecentChats);
 export default router;
