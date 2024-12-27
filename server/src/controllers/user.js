@@ -1,21 +1,23 @@
-import { giveError } from "../utils/utils.js";
+import { handleRequest } from "../utils/utils.js";
 import { config } from "dotenv";
 import prisma from "../config/prisma.js";
 config();
 
 async function getUserProfile(req, res) {
-    const { email } = req.body;
-    try {
+    return handleRequest(res, async () => {
+        const { userId } = req.body;
         const user = await prisma.user.findUnique({
             where: {
-                email: email,
+                id: userId,
             },
         });
+
         if (!user) {
-            return res.status(401).json({
-                message: "User Not Found",
-                status: "error",
-            });
+            return {
+                statusCode: 404,
+                message: "User not found",
+                data: null,
+            };
         }
 
         const details = {
@@ -23,19 +25,18 @@ async function getUserProfile(req, res) {
             email: user.email,
             createdAt: user.createdAt,
         };
-        res.status(200).json({
+
+        return {
+            statusCode: 200,
             message: "User found",
-            status: "success",
             data: details,
-        });
-    } catch (error) {
-        giveError(error, res);
-    }
+        };
+    });
 }
 
 async function getUsers(req, res) {
-    const { page, limit } = req.query;
-    try {
+    return handleRequest(res, async () => {
+        const { page, limit } = req.query;
         const users = await prisma.user.findMany({
             select: {
                 username: true,
@@ -62,19 +63,18 @@ async function getUsers(req, res) {
             },
             skip: (page - 1) * limit,
         });
-        res.status(200).json({
+
+        return {
+            statusCode: 200,
             message: "Users found",
-            status: "success",
             data: users,
-        });
-    } catch (error) {
-        giveError(error, res);
-    }
+        };
+    });
 }
 
 async function searchUsers(req, res) {
-    const { username } = req.query;
-    try {
+    return handleRequest(res, async () => {
+        const { username } = req.query;
         const users = await prisma.user.findMany({
             where: {
                 username: {
@@ -86,34 +86,37 @@ async function searchUsers(req, res) {
                 email: true,
             },
         });
-        res.status(200).json({
+
+        return {
+            statusCode: 200,
             message: "Users found",
-            status: "success",
             data: users,
-        });
-    } catch (error) {
-        giveError(error, res);
-    }
+        };
+    });
 }
 
 async function sendFriendRequest(req, res) {
-    const { friendId, selfId } = req.body;
-    if (friendId === selfId) {
-        return res.status(400).json({
-            message: "Cannot send request to yourself",
-            status: "error",
-        });
-    }
-    try {
+    return handleRequest(res, async () => {
+        const { friendId, selfId } = req.body;
+        if (friendId === selfId) {
+            return {
+                statusCode: 400,
+                message: "Cannot send request to yourself",
+                data: null,
+            };
+        }
+
         const [userToSendReq, user] = await Promise.all([
             prisma.user.findUnique({ where: { id: friendId } }),
             prisma.user.findUnique({ where: { id: selfId } }),
         ]);
+
         if (!userToSendReq || !user) {
-            return res.status(404).json({
+            return {
+                statusCode: 404,
                 message: "User not found",
-                status: "error",
-            });
+                data: null,
+            };
         }
 
         const existingRequest = await prisma.friendRequest.findFirst({
@@ -127,27 +130,27 @@ async function sendFriendRequest(req, res) {
 
         if (existingRequest) {
             if (existingRequest.status === "ACCEPTED") {
-                return res.status(400).json({
+                return {
+                    statusCode: 400,
                     message: "Already friends",
-                    status: "error",
-                    existingRequest,
-                });
+                    data: existingRequest,
+                };
             }
 
             if (existingRequest.status === "PENDING") {
                 if (existingRequest.senderId === selfId) {
-                    return res.status(400).json({
+                    return {
+                        statusCode: 400,
                         message: "Friend request already sent",
-                        status: "error",
-                        existingRequest,
-                    });
+                        data: existingRequest,
+                    };
                 } else {
-                    return res.status(400).json({
+                    return {
+                        statusCode: 400,
                         message:
                             "You have a pending request from this user. Please respond to it instead.",
-                        status: "error",
-                        existingRequest,
-                    });
+                        data: existingRequest,
+                    };
                 }
             }
 
@@ -159,18 +162,18 @@ async function sendFriendRequest(req, res) {
                             status: "PENDING",
                         },
                     });
-                    return res.status(200).json({
+                    return {
+                        statusCode: 200,
                         message: "Friend request resent",
-                        status: "success",
-                        request: friendRequest,
-                    });
+                        data: friendRequest,
+                    };
                 } else {
-                    return res.status(400).json({
+                    return {
+                        statusCode: 400,
                         message:
                             "You cannot send a request. The other user must initiate.",
-                        status: "error",
-                        existingRequest,
-                    });
+                        data: existingRequest,
+                    };
                 }
             }
         }
@@ -182,24 +185,24 @@ async function sendFriendRequest(req, res) {
                 status: "PENDING",
             },
         });
-        return res.status(200).json({
+
+        return {
+            statusCode: 200,
             message: "Friend request sent",
-            status: "success",
-            request: friendRequest,
-        });
-    } catch (error) {
-        giveError(error, res);
-    }
+            data: friendRequest,
+        };
+    });
 }
 
 async function manageFriendRequest(req, res) {
-    const { requestId, action } = req.body;
-    try {
+    return handleRequest(res, async () => {
+        const { requestId, action } = req.body;
         if (!requestId || !action) {
-            return res.status(400).json({
+            return {
+                statusCode: 400,
                 message: "Invalid request",
-                status: "error",
-            });
+                data: null,
+            };
         }
 
         const request = await prisma.friendRequest.findUnique({
@@ -207,10 +210,11 @@ async function manageFriendRequest(req, res) {
         });
 
         if (!request) {
-            return res.status(404).json({
+            return {
+                statusCode: 404,
                 message: "Request not found",
-                status: "error",
-            });
+                data: null,
+            };
         }
 
         if (
@@ -218,10 +222,11 @@ async function manageFriendRequest(req, res) {
             action !== "REJECTED" &&
             action !== "CANCELED"
         ) {
-            return res.status(400).json({
+            return {
+                statusCode: 400,
                 message: "Invalid action",
-                status: "error",
-            });
+                data: null,
+            };
         }
 
         const requestAction = await prisma.friendRequest.update({
@@ -230,50 +235,40 @@ async function manageFriendRequest(req, res) {
         });
 
         if (!requestAction) {
-            return res.status(400).json({
+            return {
+                statusCode: 400,
                 message: "Action failed try again!",
-                status: "error",
-            });
+                data: null,
+            };
         }
 
-        return res.status(200).json({
-            message: "Friend request " + action.toLowerCase(),
-            status: "success",
-        });
-    } catch (error) {
-        giveError(error, res);
-    }
+        return {
+            statusCode: 200,
+            message: `Friend request ${action.toLowerCase()}`,
+            data: null,
+        };
+    });
 }
 
 async function getFriendRequests(req, res) {
-    try {
+    return handleRequest(res, async () => {
         const { userId } = req.body;
-
-        if (!userId) {
-            return res.status(400).json({
-                message: "User not found",
-                status: "error",
-            });
-        }
-
         const requests = await prisma.friendRequest.findMany({
             where: {
                 OR: [{ senderId: userId }, { receiverId: userId }],
             },
         });
 
-        return res.status(200).json({
+        return {
+            statusCode: 200,
             message: "Friend requests found",
-            status: "success",
             data: requests,
-        });
-    } catch (error) {
-        giveError(error, res);
-    }
+        };
+    });
 }
 
 async function getFriends(req, res) {
-    try {
+    return handleRequest(res, async () => {
         const { userId } = req.body;
         const friends = await prisma.friendRequest.findMany({
             where: {
@@ -282,19 +277,14 @@ async function getFriends(req, res) {
                     { receiverId: userId, status: "ACCEPTED" },
                 ],
             },
-            include: {
-                sender: true,
-                receiver: true,
-            },
         });
-        return res.status(200).json({
+
+        return {
+            statusCode: 200,
             message: "Friends found",
-            status: "success",
             data: friends,
-        });
-    } catch (error) {
-        giveError(error, res);
-    }
+        };
+    });
 }
 
 export {
