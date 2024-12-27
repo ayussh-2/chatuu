@@ -1,24 +1,23 @@
 "use client";
-import { useState } from 'react';
 
-import { motion } from 'framer-motion';
-import { useRouter } from 'next/navigation';
-import toast from 'react-hot-toast';
+import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
 
-import { loginFields } from '@/config/auth/auth';
-import { useForm } from '@/hooks/useForm';
-import { LoginFormProps } from '@/types/auth/auth';
-import { handleLogin } from '@/utils/actions/authHandler';
-import { validateUser } from '@/utils/validateSchema';
-
-import { Button } from '../ui/button';
-import { Input } from '../ui/input';
-import LoadingButton from '../ui/loading-button';
-import GoogleLogin from './googleLogin';
+import { loginFields } from "@/config/auth/auth";
+import { useForm } from "@/hooks/useForm";
+import { LoginFormProps } from "@/types/auth/auth";
+import { validateUser } from "@/utils/validateSchema";
+import Cookies from "js-cookie";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import LoadingButton from "../ui/loading-button";
+import GoogleLogin from "./googleLogin";
+import { useApi } from "@/hooks/use-Api";
+import { handleSetCookie } from "@/utils/actions/authHandler";
 
 export default function LoginForm({ toggleLogin }: LoginFormProps) {
     const router = useRouter();
-    const [loading, setLoading] = useState(false);
+    const { isLoading, makeRequest } = useApi();
     const { formData, errors, setErrors, handleInputChange } = useForm({
         email: "",
         password: "",
@@ -26,28 +25,18 @@ export default function LoginForm({ toggleLogin }: LoginFormProps) {
 
     const handleSubmit = async () => {
         const isValid = validateUser(formData, "login", setErrors);
-
         if (isValid) {
-            setLoading(true);
-            try {
-                const loggedInStatus = await handleLogin(formData);
-                if (loggedInStatus.status !== "error") {
-                    toast.success("Login successful");
-                    localStorage.setItem(
-                        "loggedInChatuuUser",
-                        JSON.stringify(loggedInStatus.user)
-                    );
-                    router.push("/chats");
-                } else {
-                    toast.error(loggedInStatus.message);
-                }
-            } catch (error) {
-                console.log(error);
-                toast.error("An error occurred");
-            } finally {
-                setLoading(false);
-            }
-            setLoading(false);
+            const response = await makeRequest(
+                "POST",
+                "/auth/login",
+                formData,
+                "Login failed"
+            );
+            if (!response || response.status === "error") return;
+            const { data } = response;
+            handleSetCookie("chatuu-token", data.token);
+            Cookies.set("chatuu-user", JSON.stringify(data));
+            router.push("/chats");
         } else {
             console.log("Form is invalid");
         }
@@ -66,7 +55,7 @@ export default function LoginForm({ toggleLogin }: LoginFormProps) {
             </h2>
             <div className="space-y-4 w-full font-inter">
                 {loginFields.map((field) => (
-                    <div>
+                    <div key={field.name}>
                         <Input
                             key={field.name}
                             placeholder={field.placeholder}
@@ -91,9 +80,9 @@ export default function LoginForm({ toggleLogin }: LoginFormProps) {
                 ))}
 
                 <LoadingButton
-                    loading={loading}
+                    loading={isLoading}
                     onClick={handleSubmit}
-                    disabled={loading}
+                    disabled={isLoading}
                     className="btn-primary bg-white"
                 >
                     Login

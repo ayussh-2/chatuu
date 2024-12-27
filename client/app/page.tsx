@@ -3,9 +3,7 @@ import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import SignupForm from "@/components/auth/signup";
 import LoginForm from "@/components/auth/login";
-import { BackgroundBeams } from "@/components/ui/background-beams";
 import { TextGenerateEffect } from "@/components/ui/text-generate-effect";
-import { handleLogin, handleSignup } from "@/utils/actions/authHandler";
 
 export default function Home() {
     const [showForms, setShowForms] = useState(false);
@@ -23,21 +21,14 @@ export default function Home() {
 
     return (
         <div>
-            <BackgroundBeams />
             <div className="grid min-h-screen place-items-center">
                 <AnimatePresence mode="wait">
                     {showForms ? (
                         <>
                             {showLogin ? (
-                                <LoginForm
-                                    toggleLogin={toggleLogin}
-                                    handleLogin={handleLogin}
-                                />
+                                <LoginForm toggleLogin={toggleLogin} />
                             ) : (
-                                <SignupForm
-                                    toggleLogin={toggleLogin}
-                                    handleSignup={handleSignup}
-                                />
+                                <SignupForm toggleLogin={toggleLogin} />
                             )}
                         </>
                     ) : (

@@ -5,7 +5,7 @@ const protectedRoutes = ["/chats", "/logout", "/friends"];
 const publicRoutes = ["/"];
 
 export default async function middleware(req: NextRequest) {
-    const cookie = cookies().get("jwt")?.value;
+    const cookie = cookies().get("chatuu-token")?.value;
     const isProtectedRoute = protectedRoutes.includes(req.nextUrl.pathname);
     const isPublicRoute = publicRoutes.includes(req.nextUrl.pathname);
 

@@ -5,17 +5,17 @@ import { motion } from "framer-motion";
 import { SignupFormProps, UserType } from "@/types/auth/auth";
 import GoogleLogin from "./googleLogin";
 import { signupFields } from "@/config/auth/auth";
-import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { validateUser } from "@/utils/validateSchema";
-import toast from "react-hot-toast";
-import { handleSignup } from "@/utils/actions/authHandler";
+import Cookies from "js-cookie";
+import { handleSetCookie } from "@/utils/actions/authHandler";
 import LoadingButton from "../ui/loading-button";
 import { useForm } from "@/hooks/useForm";
+import { useApi } from "@/hooks/use-Api";
 
 export default function SignupForm({ toggleLogin }: SignupFormProps) {
     const router = useRouter();
-    const [loading, setLoading] = useState(false);
+    const { isLoading, makeRequest } = useApi();
     const { formData, errors, setErrors, handleInputChange } = useForm({
         name: "",
         username: "",
@@ -27,25 +27,17 @@ export default function SignupForm({ toggleLogin }: SignupFormProps) {
         const isValid = validateUser(formData, "signup", setErrors);
 
         if (isValid) {
-            setLoading(true);
-            try {
-                const signUp = await handleSignup(formData);
-                if (signUp.status !== "error") {
-                    toast.success("Sign up successful");
-                    localStorage.setItem(
-                        "loggedInChatuuUser",
-                        JSON.stringify(signUp.user)
-                    );
-                    router.push("/chats");
-                } else {
-                    toast.error(signUp.message);
-                }
-            } catch (error) {
-                console.log(error);
-                toast.error("An error occurred");
-            } finally {
-                setLoading(false);
-            }
+            const response = await makeRequest(
+                "POST",
+                "/auth/signup",
+                formData,
+                "Signup failed"
+            );
+            if (!response || response.status === "error") return;
+            const { data } = response;
+            handleSetCookie("chatuu-token", data.token);
+            Cookies.set("chatuu-user", JSON.stringify(data));
+            router.push("/chats");
         } else {
             console.log("Form validation failed");
         }
@@ -64,7 +56,7 @@ export default function SignupForm({ toggleLogin }: SignupFormProps) {
             </h2>
             <div className="space-y-4 w-full font-inter">
                 {signupFields.map((field) => (
-                    <div>
+                    <div key={field.name}>
                         <Input
                             key={field.name}
                             placeholder={field.placeholder}
@@ -87,9 +79,9 @@ export default function SignupForm({ toggleLogin }: SignupFormProps) {
                 ))}
 
                 <LoadingButton
-                    loading={loading}
+                    loading={isLoading}
                     onClick={handleSubmit}
-                    disabled={loading}
+                    disabled={isLoading}
                     className="btn-primary"
                 >
                     Sign Up

@@ -2,14 +2,21 @@
 import React from "react";
 import { useLayoutEffect } from "react";
 import { handleLogout } from "@/utils/actions/authHandler";
+import Cookies from "js-cookie";
 export default function Page() {
     useLayoutEffect(() => {
-        logOutUser();
+        const loggedOut = logOutUser();
+        if (loggedOut) {
+            window.location.href = "/";
+        }
     });
 
     function logOutUser() {
-        handleLogout();
-        localStorage.removeItem("loggedInChatuuUser");
+        const status = handleLogout();
+        if (status) {
+            Cookies.remove("chatuu-user");
+        }
+        return status;
     }
 
     return (
