@@ -44,14 +44,17 @@ export default function Home() {
     useEffect(() => {
         const socket = getSocket();
         socket.on("message", ({ userId, message }) => {
+            const now = new Date();
             const newMessage = {
                 id: Date.now(),
                 content: message,
                 senderId: userId,
-                time: new Date().toLocaleTimeString([], {
+                time: now.toLocaleTimeString("en-US", {
                     hour: "2-digit",
                     minute: "2-digit",
+                    timeZone: "Asia/Kolkata",
                 }),
+                timestamp: now.getTime(),
             };
             addMessage(activeContactId, newMessage);
         });
@@ -76,6 +79,7 @@ export default function Home() {
                         activeContactId={activeContactId}
                         isLoading={isLoading}
                         makeRequest={makeRequest}
+                        userId={userId!}
                     />
                 </div>
             ) : (

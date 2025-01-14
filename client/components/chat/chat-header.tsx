@@ -7,7 +7,6 @@ import { useChatStore } from "@/lib/chat-store";
 export function ChatHeader() {
     const { contacts, activeContactId } = useChatStore();
     const activeContact = contacts.find((c) => c.id === activeContactId);
-
     return (
         <motion.div
             initial={{ y: -50, opacity: 0 }}

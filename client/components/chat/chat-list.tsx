@@ -53,7 +53,7 @@ export function ChatList() {
                                 )}
                             </div>
                             <p className="text-sm text-muted-foreground truncate font-plusJakarta">
-                                {getLastMessage(chat.id)}
+                                {getLastMessage(chat.conversationId)}
                             </p>
                         </div>
                     </div>

@@ -12,7 +12,7 @@ export function Sidebar() {
             initial={{ x: -300, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             transition={{ duration: 0.5 }}
-            className="w-80 border-r border-border bg-card/50 backdrop-blur-xl h-screen flex flex-col"
+            className="w-10 border-r border-border bg-card/50 backdrop-blur-xl h-screen flex flex-col"
         >
             <div className="p-3 flex items-center justify-between border-b">
                 <h1 className="text-xl font-semibold text-white font-syne">

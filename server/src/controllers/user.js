@@ -306,7 +306,6 @@ async function getRecentChats(req, res) {
                 userId: userId,
             },
             select: {
-                conversationId: true,
                 conversation: {
                     include: {
                         participants: {
@@ -354,6 +353,11 @@ async function getRecentChats(req, res) {
                     },
                 },
             },
+            orderBy: {
+                conversation: {
+                    createdAt: "asc",
+                },
+            },
         });
 
         const contacts = [];
@@ -371,8 +375,8 @@ async function getRecentChats(req, res) {
                 conversationId: conversation.id,
             });
 
-            messages[conversation.id] = conversation.messages.map(
-                (message) => ({
+            messages[conversation.id] = conversation.messages
+                .map((message) => ({
                     id: message.id,
                     content: message.content,
                     senderId: message.sender.id,
@@ -381,10 +385,12 @@ async function getRecentChats(req, res) {
                         {
                             hour: "2-digit",
                             minute: "2-digit",
+                            timeZone: "Asia/Kolkata",
+                            day: "2-digit",
                         }
                     ),
-                })
-            );
+                }))
+                .sort((a, b) => a.id - b.id);
         });
 
         contacts.sort((a, b) => {
@@ -401,7 +407,7 @@ async function getRecentChats(req, res) {
         return {
             statusCode: 200,
             message: "Recent chats retrieved successfully",
-            data: { contacts, messages, userConversations },
+            data: { contacts, messages },
         };
     });
 }

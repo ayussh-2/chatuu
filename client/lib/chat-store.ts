@@ -21,7 +21,7 @@ type ChatStore = {
     messages: Record<number, Message[]>;
     activeContactId: number;
     setActiveContact: (conversationId: number) => void;
-    sendMessage: (content: string) => void;
+    sendMessage: (content: string, senderId: number) => void;
     setContacts: (contacts: Contact[]) => void;
     setMessages: (messages: Record<number, Message[]>) => void;
     addMessage: (conversationId: number, message: Message) => void;
@@ -35,12 +35,12 @@ export const useChatStore = create<ChatStore>((set) => ({
     setActiveContact: (conversationId) =>
         set({ activeContactId: conversationId }),
 
-    sendMessage: (content) =>
+    sendMessage: (content, senderId) =>
         set((state) => {
             const newMessage = {
                 id: Date.now(),
                 content,
-                senderId: 0,
+                senderId,
                 time: new Date().toLocaleTimeString([], {
                     hour: "2-digit",
                     minute: "2-digit",

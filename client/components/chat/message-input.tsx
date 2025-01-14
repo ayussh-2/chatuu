@@ -12,15 +12,17 @@ interface MessageInputProps {
     activeContactId: number;
     makeRequest: any;
     isLoading: boolean;
+    userId: number;
 }
 
 export function MessageInput({
     activeContactId,
     makeRequest,
     isLoading,
+    userId,
 }: MessageInputProps) {
     const [message, setMessage] = useState("");
-    const sendMessage = useChatStore((state) => state.sendMessage);
+    const { sendMessage, addMessage } = useChatStore();
 
     const handleSend = async () => {
         if (!message.trim()) return;
@@ -38,7 +40,7 @@ export function MessageInput({
                 {
                     content: message.trim(),
                     conversationId: activeContactId,
-                    userId: 1,
+                    userId,
                 },
                 "Error sending message",
                 true,
@@ -46,7 +48,7 @@ export function MessageInput({
             );
 
             if (response?.data) {
-                sendMessage(message);
+                sendMessage(message, userId);
             }
 
             setMessage("");

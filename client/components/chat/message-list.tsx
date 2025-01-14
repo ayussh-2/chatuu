@@ -7,7 +7,6 @@ export function MessageList({ userId }: { userId: number }) {
     const { messages, activeContactId } = useChatStore();
     const activeMessages = messages[activeContactId] || [];
     const messagesEndRef = useRef<HTMLDivElement>(null);
-
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [activeMessages]);
@@ -15,13 +14,9 @@ export function MessageList({ userId }: { userId: number }) {
     return (
         <div className="flex-1 overflow-y-auto p-4">
             <div className="space-y-4">
-                {activeMessages.map((message, i) => {
+                {activeMessages.map((message) => {
                     const isCurrentUser = message.senderId === userId;
-                    console.log(
-                        message,
-                        "senderid" + message.senderId,
-                        "userid" + userId
-                    );
+                    console.log(message.senderId, userId);
                     return (
                         <motion.div
                             key={message.id}
