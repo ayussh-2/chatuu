@@ -1,12 +1,20 @@
 import express from "express";
-import { loginUser, createUser, googleCallback } from "../controllers/auth.js";
 import passport from "passport";
+
+import {
+    createUser,
+    googleCallback,
+    loginUser,
+    resetPassword,
+} from "../controllers/auth.js";
 
 const router = express.Router();
 
 router.post("/login", loginUser);
 
 router.post("/signup", createUser);
+
+router.post("/reset", resetPassword);
 
 router.get(
     "/google",

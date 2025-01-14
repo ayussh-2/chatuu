@@ -133,10 +133,6 @@ async function sendMessage(req, res) {
             JSON.stringify(conversation)
         );
 
-        req.io
-            .to(conversationId.toString())
-            .emit("newMessage", { conversationId, message });
-
         res.status(200).json({
             message: "Message sent successfully",
             status: "success",

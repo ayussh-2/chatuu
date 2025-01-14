@@ -17,14 +17,16 @@ export function ChatList() {
         <div className="flex-1 overflow-y-auto">
             {contacts.map((chat, i) => (
                 <motion.div
-                    key={chat.id}
+                    key={chat.conversationId}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: i * 0.1 }}
                     className={`p-4 hover:bg-accent/50 cursor-pointer transition-colors ${
-                        activeContactId === chat.id ? "bg-accent/50" : ""
+                        activeContactId === chat.conversationId
+                            ? "bg-accent/50"
+                            : ""
                     }`}
-                    onClick={() => setActiveContact(chat.id)}
+                    onClick={() => setActiveContact(chat.conversationId)}
                 >
                     <div className="flex items-center space-x-4">
                         <div className="relative">

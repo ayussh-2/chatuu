@@ -13,13 +13,14 @@ type Contact = {
     online: boolean;
     lastMessage?: string;
     unread: number;
+    conversationId: number;
 };
 
 type ChatStore = {
     contacts: Contact[];
     messages: Record<number, Message[]>;
     activeContactId: number;
-    setActiveContact: (id: number) => void;
+    setActiveContact: (conversationId: number) => void;
     sendMessage: (content: string) => void;
     setContacts: (contacts: Contact[]) => void;
     setMessages: (messages: Record<number, Message[]>) => void;
@@ -29,7 +30,9 @@ export const useChatStore = create<ChatStore>((set) => ({
     activeContactId: 0,
     contacts: [],
     messages: {},
-    setActiveContact: (id) => set({ activeContactId: id }),
+    conversationId: 0,
+    setActiveContact: (conversationId) =>
+        set({ activeContactId: conversationId }),
     sendMessage: (content) =>
         set((state) => {
             const newMessage = {

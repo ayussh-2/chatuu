@@ -1,9 +1,9 @@
-import prisma from "../config/prisma.js";
 import bcrypt from "bcryptjs";
-import { generateToken } from "../utils/utils.js";
 import { config } from "dotenv";
+
+import prisma from "../config/prisma.js";
 import redisClient from "../config/redis.js";
-import { handleRequest } from "../utils/utils.js";
+import { generateToken, handleRequest } from "../utils/utils.js";
 
 config();
 
@@ -161,4 +161,41 @@ async function googleCallback(req, res) {
     });
 }
 
-export { createUser, loginUser, googleCallback };
+async function resetPassword(req, res) {
+    handleRequest(res, async () => {
+        const { email, password } = req.body;
+        const user = await prisma.user.findUnique({
+            where: {
+                email: email,
+            },
+        });
+
+        if (!user) {
+            return {
+                statusCode: 401,
+                message: "User Not Found",
+                data: null,
+            };
+        }
+
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+
+        await prisma.user.update({
+            where: {
+                email: email,
+            },
+            data: {
+                password: hashedPassword,
+            },
+        });
+
+        return {
+            statusCode: 200,
+            message: "Password reset successfully",
+            data: null,
+        };
+    });
+}
+
+export { createUser, googleCallback, loginUser, resetPassword };

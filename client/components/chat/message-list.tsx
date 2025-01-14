@@ -1,5 +1,6 @@
 "use client";
 import { motion } from "framer-motion";
+
 import { useChatStore } from "@/lib/chat-store";
 
 export function MessageList() {
@@ -15,7 +16,7 @@ export function MessageList() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: i * 0.1 }}
                     className={`flex ${
-                        message.senderId === 0 ? "justify-end" : "justify-start"
+                        message.senderId === 1 ? "justify-end" : "justify-start"
                     }`}
                 >
                     <div

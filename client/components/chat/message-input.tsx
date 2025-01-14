@@ -1,20 +1,57 @@
 "use client";
 
-import { Send, Smile } from "lucide-react";
+import { LoaderCircle, Send, Smile } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { useChatStore } from "@/lib/chat-store";
 import { Input } from "../ui/input";
+import { getSocket } from "@/utils/getSocket";
 
-export function MessageInput() {
+interface MessageInputProps {
+    activeContactId: number;
+    makeRequest: any;
+    isLoading: boolean;
+}
+
+export function MessageInput({
+    activeContactId,
+    makeRequest,
+    isLoading,
+}: MessageInputProps) {
     const [message, setMessage] = useState("");
     const sendMessage = useChatStore((state) => state.sendMessage);
 
-    const handleSend = () => {
-        if (message.trim()) {
-            sendMessage(message);
+    const handleSend = async () => {
+        if (!message.trim()) return;
+        const socket = getSocket();
+
+        try {
+            socket.emit("sendMessage", {
+                roomId: activeContactId,
+                message: message.trim(),
+            });
+
+            const response = await makeRequest(
+                "POST",
+                "/rooms/sendmessage",
+                {
+                    content: message.trim(),
+                    conversationId: activeContactId,
+                    userId: 1,
+                },
+                "Error sending message",
+                true,
+                false
+            );
+
+            if (response?.data) {
+                sendMessage(message);
+            }
+
             setMessage("");
+        } catch (error) {
+            console.error("Error sending message:", error);
         }
     };
 
@@ -43,8 +80,12 @@ export function MessageInput() {
                 <Button variant="ghost" size="icon">
                     <Smile className="w-5 h-5" />
                 </Button>
-                <Button size="icon" onClick={handleSend}>
-                    <Send className="w-4 h-4" />
+                <Button size="icon" onClick={handleSend} disabled={isLoading}>
+                    {isLoading ? (
+                        <LoaderCircle className="w-4 h-4 animate-spin" />
+                    ) : (
+                        <Send className="w-4 h-4" />
+                    )}
                 </Button>
             </div>
         </motion.div>

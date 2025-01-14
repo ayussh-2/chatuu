@@ -1,10 +1,11 @@
-import express from "express";
 import { config } from "dotenv";
-import { Server } from "socket.io";
+import express from "express";
 import { createServer } from "http";
+import { Server } from "socket.io";
+
 import {
-    cors,
     authenticateToken,
+    cors,
     initializePassport,
     jsonParser,
     sessionMiddleware,
@@ -16,7 +17,13 @@ config();
 
 const app = express();
 const httpServer = createServer(app);
-export const io = new Server(httpServer);
+export const io = new Server(httpServer, {
+    cors: {
+        origin: "http://localhost:3000",
+        methods: ["GET", "POST"],
+        credentials: true,
+    },
+});
 
 //middlewares
 app.use(cors);
@@ -32,15 +39,7 @@ app.get("/", (req, res) => {
 
 app.use("/api/auth", authRoutes);
 app.use("/api/user", authenticateToken, userRoutes);
-app.use(
-    "/api/rooms",
-    (req, res, next) => {
-        req.io = io;
-        next();
-    },
-
-    roomRoutes
-);
+app.use("/api/rooms", roomRoutes);
 
 io.on("connection", (socket) => {
     console.log("A user connected " + socket.id);

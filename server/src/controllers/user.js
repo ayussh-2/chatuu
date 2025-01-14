@@ -1,6 +1,8 @@
-import { handleRequest } from "../utils/utils.js";
 import { config } from "dotenv";
+
 import prisma from "../config/prisma.js";
+import { handleRequest } from "../utils/utils.js";
+
 config();
 
 async function getUserProfile(req, res) {
@@ -36,7 +38,7 @@ async function getUserProfile(req, res) {
 
 async function getUsers(req, res) {
     return handleRequest(res, async () => {
-        const { page, limit } = req.query;
+        const { page = 1, limit = 0 } = req.query;
         const users = await prisma.user.findMany({
             select: {
                 username: true,
@@ -299,12 +301,12 @@ async function getRecentChats(req, res) {
             };
         }
 
-        // Get all conversations where user is a participant
         const userConversations = await prisma.participant.findMany({
             where: {
                 userId: userId,
             },
             select: {
+                conversationId: true,
                 conversation: {
                     include: {
                         participants: {
@@ -312,7 +314,6 @@ async function getRecentChats(req, res) {
                                 user: {
                                     select: {
                                         id: true,
-                                        name: true,
                                         username: true,
                                         profilePicture: true,
                                     },
@@ -363,16 +364,11 @@ async function getRecentChats(req, res) {
                 (p) => p.user.id !== userId
             )?.user;
 
-            const unreadCount = conversation.messages.filter(
-                (message) =>
-                    !message.readReceipts.length && message.sender.id !== userId
-            ).length;
-
             contacts.push({
-                id: conversation.id,
-                name: otherParticipant?.name || conversation.name,
+                id: otherParticipant?.id,
+                name: otherParticipant?.username,
                 online: !!otherParticipant?.onlineStatus,
-                unread: unreadCount,
+                conversationId: conversation.id,
             });
 
             messages[conversation.id] = conversation.messages.map(
@@ -405,18 +401,18 @@ async function getRecentChats(req, res) {
         return {
             statusCode: 200,
             message: "Recent chats retrieved successfully",
-            data: { contacts, messages },
+            data: { contacts, messages, userConversations },
         };
     });
 }
 
 export {
-    getUserProfile,
-    getUsers,
-    searchUsers,
-    sendFriendRequest,
-    manageFriendRequest,
     getFriendRequests,
     getFriends,
     getRecentChats,
+    getUserProfile,
+    getUsers,
+    manageFriendRequest,
+    searchUsers,
+    sendFriendRequest,
 };
