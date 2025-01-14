@@ -11,4 +11,5 @@ export type UserType = {
     password: string;
     username?: string;
     name?: string;
+    userId?: number;
 };

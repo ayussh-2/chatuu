@@ -1,5 +1,5 @@
 "use client";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import { ChatHeader } from "@/components/chat/chat-header";
 import { MessageInput } from "@/components/chat/message-input";
@@ -10,20 +10,23 @@ import Loader from "@/components/loader/Loader";
 import { useApi } from "@/hooks/use-Api";
 import { useChatStore } from "@/lib/chat-store";
 import { getSocket } from "@/utils/getSocket";
+import useUser from "@/hooks/use-user";
 
 export default function Home() {
     const { isLoading, makeRequest } = useApi();
     const { setContacts, setMessages, activeContactId } = useChatStore();
+    const [userId, setUserId] = useState<number | null>(null);
+
+    const user = useUser();
     async function getUserChats() {
         const response = await makeRequest(
             "POST",
             "/user/chats",
-            { userId: 1 },
+            { userId: user?.userId },
             "Some Error occoured while fetching chats",
             true,
             false
         );
-        console.log(response);
         if (!response) return;
         const { contacts, messages } = response.data;
         setContacts(contacts);
@@ -31,13 +34,16 @@ export default function Home() {
     }
 
     useEffect(() => {
-        getUserChats();
-    }, []);
+        if (user) {
+            getUserChats();
+            setUserId(user?.userId ?? null);
+        }
+    }, [user]);
 
     useEffect(() => {
         const socket = getSocket();
-        socket.on("message", (message) => {
-            console.log(message);
+        socket.on("message", ({ userId, message }) => {
+            console.log("message", message);
         });
 
         return () => {
@@ -52,7 +58,7 @@ export default function Home() {
             {activeContactId ? (
                 <div className="flex-1 flex flex-col">
                     <ChatHeader />
-                    <MessageList />
+                    <MessageList userId={userId} />
                     <MessageInput
                         activeContactId={activeContactId}
                         isLoading={isLoading}

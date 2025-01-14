@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 
 import { useChatStore } from "@/lib/chat-store";
 
-export function MessageList() {
+export function MessageList({ userId }: { userId: number | null }) {
     const { messages, activeContactId } = useChatStore();
     const activeMessages = messages[activeContactId] || [];
 
@@ -16,24 +16,26 @@ export function MessageList() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: i * 0.1 }}
                     className={`flex ${
-                        message.senderId === 1 ? "justify-end" : "justify-start"
+                        message.senderId === userId
+                            ? "justify-end"
+                            : "justify-start"
                     }`}
                 >
                     <div
                         className={`flex ${
-                            message.senderId === 0
+                            message.senderId === userId
                                 ? "flex-row-reverse"
                                 : "flex-row"
                         } items-end space-x-2`}
                     >
                         <div
                             className={`max-w-md ${
-                                message.senderId === 0 ? "mr-2" : "ml-2"
+                                message.senderId === userId ? "mr-2" : "ml-2"
                             }`}
                         >
                             <div
                                 className={`px-4 py-2 rounded-2xl ${
-                                    message.senderId === 0
+                                    message.senderId === userId
                                         ? "bg-primary text-primary-foreground"
                                         : "bg-muted"
                                 }`}
