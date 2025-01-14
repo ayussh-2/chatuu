@@ -14,7 +14,8 @@ import useUser from "@/hooks/use-user";
 
 export default function Home() {
     const { isLoading, makeRequest } = useApi();
-    const { setContacts, setMessages, activeContactId } = useChatStore();
+    const { setContacts, setMessages, activeContactId, addMessage } =
+        useChatStore();
     const [userId, setUserId] = useState<number | null>(null);
 
     const user = useUser();
@@ -43,13 +44,25 @@ export default function Home() {
     useEffect(() => {
         const socket = getSocket();
         socket.on("message", ({ userId, message }) => {
-            console.log("message", message);
+            const newMessage = {
+                id: Date.now(),
+                content: message,
+                senderId: userId,
+                time: new Date().toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                }),
+            };
+            addMessage(activeContactId, newMessage);
         });
+
+        socket.emit("joinRoom", activeContactId);
 
         return () => {
             socket.off("message");
+            socket.emit("leaveRoom", activeContactId);
         };
-    }, []);
+    }, [activeContactId]);
 
     return (
         <main className="h-screen flex bg-background">
@@ -58,7 +71,7 @@ export default function Home() {
             {activeContactId ? (
                 <div className="flex-1 flex flex-col">
                     <ChatHeader />
-                    <MessageList userId={userId} />
+                    <MessageList userId={userId!} />
                     <MessageInput
                         activeContactId={activeContactId}
                         isLoading={isLoading}
