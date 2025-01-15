@@ -16,7 +16,6 @@ export function MessageList({ userId }: { userId: number }) {
             <div className="space-y-4">
                 {activeMessages.map((message) => {
                     const isCurrentUser = message.senderId === userId;
-                    console.log(message.senderId, userId);
                     return (
                         <motion.div
                             key={message.id}

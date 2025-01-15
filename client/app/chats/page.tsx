@@ -43,12 +43,12 @@ export default function Home() {
 
     useEffect(() => {
         const socket = getSocket();
-        socket.on("message", ({ userId, message }) => {
+        socket.on("message", ({ message, senderId }) => {
             const now = new Date();
             const newMessage = {
                 id: Date.now(),
                 content: message,
-                senderId: userId,
+                senderId,
                 time: now.toLocaleTimeString("en-US", {
                     hour: "2-digit",
                     minute: "2-digit",

@@ -32,6 +32,7 @@ export function MessageInput({
             socket.emit("sendMessage", {
                 roomId: activeContactId,
                 message: message.trim(),
+                senderId: userId,
             });
 
             const response = await makeRequest(
@@ -48,7 +49,8 @@ export function MessageInput({
             );
 
             if (response?.data) {
-                sendMessage(message, userId);
+                console.log(message, userId);
+                // sendMessage(message, userId);
             }
 
             setMessage("");

@@ -54,8 +54,8 @@ io.on("connection", (socket) => {
         console.log(`User ${socket.id} left room ${roomId}`);
     });
 
-    socket.on("sendMessage", ({ roomId, message }) => {
-        io.to(roomId).emit("message", { userId: socket.id, message });
+    socket.on("sendMessage", ({ roomId, message, senderId }) => {
+        io.to(roomId).emit("message", { senderId, message });
         console.log(`User ${socket.id} sent message to room ${roomId}`);
     });
 
