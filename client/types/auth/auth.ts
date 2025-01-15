@@ -8,8 +8,9 @@ export type LoginFormProps = {
 
 export type UserType = {
     email: string;
-    password: string;
+    password?: string;
     username?: string;
     name?: string;
     userId?: number;
+    profilePicture?: string;
 };

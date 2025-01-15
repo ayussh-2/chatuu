@@ -4,7 +4,6 @@ import { LoaderCircle, Send, Smile } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import { useChatStore } from "@/lib/chat-store";
 import { Input } from "../ui/input";
 import { getSocket } from "@/utils/getSocket";
 
@@ -22,8 +21,6 @@ export function MessageInput({
     userId,
 }: MessageInputProps) {
     const [message, setMessage] = useState("");
-    const { sendMessage, addMessage } = useChatStore();
-
     const handleSend = async () => {
         if (!message.trim()) return;
         const socket = getSocket();
@@ -48,11 +45,7 @@ export function MessageInput({
                 false
             );
 
-            if (response?.data) {
-                console.log(message, userId);
-                // sendMessage(message, userId);
-            }
-
+            if (!response) return;
             setMessage("");
         } catch (error) {
             console.error("Error sending message:", error);
