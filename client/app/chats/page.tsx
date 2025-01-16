@@ -43,21 +43,24 @@ export default function Home() {
 
     useEffect(() => {
         const socket = getSocket();
-        socket.on("message", ({ message, senderId }) => {
-            const now = new Date();
-            const newMessage = {
-                id: Date.now(),
-                content: message,
-                senderId,
-                time: now.toLocaleTimeString("en-US", {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                    timeZone: "Asia/Kolkata",
-                }),
-                timestamp: now.getTime(),
-            };
-            addMessage(activeContactId, newMessage);
-        });
+        socket.on(
+            "message",
+            ({ message, senderId }: { message: string; senderId: number }) => {
+                const now = new Date();
+                const newMessage = {
+                    id: Date.now(),
+                    content: message,
+                    senderId,
+                    time: now.toLocaleTimeString("en-US", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        timeZone: "Asia/Kolkata",
+                    }),
+                    timestamp: now.getTime(),
+                };
+                addMessage(activeContactId, newMessage);
+            }
+        );
 
         socket.emit("joinRoom", activeContactId);
 

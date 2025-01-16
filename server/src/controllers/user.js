@@ -281,6 +281,8 @@ async function getFriends(req, res) {
             },
         });
 
+        console.log(friends);
+
         return {
             statusCode: 200,
             message: "Friends found",

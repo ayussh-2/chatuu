@@ -1,21 +1,45 @@
 import { io } from "socket.io-client";
 
-const socket = io(process.env.NEXT_PUBLIC_SOCKET_URL, {
-    transports: ["websocket"],
-    autoConnect: true,
-    reconnection: true,
-});
+class SocketService {
+    private static instance: SocketService;
+    private socket: any;
 
-socket.on("connect", () => {
-    console.log("Socket connected:", socket.id);
-});
+    private constructor() {
+        this.socket = io(process.env.NEXT_PUBLIC_SOCKET_URL, {
+            transports: ["websocket"],
+            autoConnect: true,
+            reconnection: true,
+        });
 
-socket.on("connect_error", (error) => {
-    console.log("Socket connection error:", error);
-});
+        this.socket.on("connect", () => {
+            console.log("Socket connected:", this.socket.id);
+        });
 
-socket.on("disconnect", (reason) => {
-    console.log("Socket disconnected:", reason);
-});
+        this.socket.on("connect_error", (error: string) => {
+            console.log("Socket connection error:", error);
+        });
 
-export const getSocket = () => socket;
+        this.socket.on("disconnect", (reason: string) => {
+            console.log("Socket disconnected:", reason);
+        });
+    }
+
+    public static getInstance(): SocketService {
+        if (!SocketService.instance) {
+            SocketService.instance = new SocketService();
+        }
+        return SocketService.instance;
+    }
+
+    public getSocket() {
+        return this.socket;
+    }
+
+    public disconnect() {
+        if (this.socket) {
+            this.socket.disconnect();
+        }
+    }
+}
+
+export const getSocket = () => SocketService.getInstance().getSocket();

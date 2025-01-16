@@ -7,7 +7,7 @@ import { TextGenerateEffect } from "@/components/ui/text-generate-effect";
 
 export default function Home() {
     const [showForms, setShowForms] = useState(false);
-    const [showLogin, setShowLogin] = useState(false);
+    const [showLogin, setShowLogin] = useState(true);
     useEffect(() => {
         const timer = setTimeout(() => {
             setShowForms(true);

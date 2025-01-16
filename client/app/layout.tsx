@@ -4,6 +4,7 @@ import "./styles/ui-styles.css";
 import { Toaster } from "react-hot-toast";
 import { inter, plusJakarta, syne } from "./fonts";
 import { Providers } from "./providers";
+import { Sidebar } from "@/components/chat/sidebar";
 export const metadata: Metadata = {
     title: "Chatuu",
     description: "An online chat application",

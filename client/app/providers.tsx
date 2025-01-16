@@ -1,5 +1,6 @@
 "use client";
 
+import { Sidebar } from "@/components/chat/sidebar";
 import { ThemeProvider as NextThemesProvider } from "next-themes";
 
 export function Providers({ children }: { children: React.ReactNode }) {
