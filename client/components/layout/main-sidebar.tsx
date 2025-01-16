@@ -6,6 +6,8 @@ import { MessageSquare, Users, User, LogOut } from "lucide-react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
+import useUser from "@/hooks/use-user";
+import { Button } from "../ui/button";
 
 const navVariants = {
     initial: { opacity: 0, x: -20 },
@@ -28,6 +30,7 @@ const navVariants = {
 export function MainSidebar() {
     const pathname = usePathname();
     const router = useRouter();
+    const user = useUser();
 
     if (pathname === "/" || pathname === "/reset" || pathname === "/logout")
         return null;
@@ -62,7 +65,11 @@ export function MainSidebar() {
                         whileHover="hover"
                     >
                         <Link
-                            href={item.href}
+                            href={
+                                item.href === "/profile"
+                                    ? `/profile/${user?.userId}`
+                                    : item.href
+                            }
                             className={cn(
                                 "w-full flex justify-center py-3 transition-colors",
                                 isActive(item.href)
@@ -76,16 +83,9 @@ export function MainSidebar() {
                 ))}
             </div>
 
-            <motion.button
-                onClick={handleLogout}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4, duration: 0.3 }}
-                whileHover={{ scale: 1.1 }}
-                className="w-full flex justify-center py-3 text-muted-foreground hover:text-destructive transition-colors"
-            >
+            <Button variant={"ghost"} size={"icon"} onClick={handleLogout}>
                 <LogOut className="w-6 h-6" />
-            </motion.button>
+            </Button>
         </motion.div>
     );
 }

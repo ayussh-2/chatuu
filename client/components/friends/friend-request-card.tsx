@@ -38,25 +38,22 @@ export function FriendRequestCard({ request }: FriendRequestCardProps) {
                 {request.sender.profilePicture ? (
                     <User className="h-6 w-6" />
                 ) : (
-                    <span>{request.sender.username[0].toUpperCase()}</span>
+                    <span>{request.sender.name[0].toUpperCase()}</span>
                 )}
             </Avatar>
             <div className="ml-4 flex-1">
                 <h3 className="font-medium capitalize">
-                    {request.sender.username}
+                    {request.sender.name}
                 </h3>
                 <p className="text-sm text-muted-foreground">
-                    {request.sender.email}
+                    @{request.sender.username}
                 </p>
                 <p className="text-xs text-muted-foreground">Sent {timeAgo}</p>
             </div>
             <div className="flex gap-2">
                 {!status ? (
                     <>
-                        <Link
-                            href={`/profile/${request.sender.userId}`}
-                            passHref
-                        >
+                        <Link href={`/profile/${request.senderId}`} passHref>
                             <Button variant="default" size="sm">
                                 View Profile
                             </Button>

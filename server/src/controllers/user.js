@@ -1,8 +1,8 @@
 import { config } from "dotenv";
 
 import prisma from "../config/prisma.js";
-import { handleRequest } from "../utils/utils.js";
-
+import { handleRequest, generateRandomChars } from "../utils/utils.js";
+import { createRoomHandler } from "./rooms.js";
 config();
 
 async function getUserProfile(req, res) {
@@ -260,6 +260,17 @@ async function manageFriendRequest(req, res) {
             where: { id: requestId },
             data: { status: action },
         });
+
+        if (action === "ACCEPTED") {
+            const userIds = [requestAction.senderId, requestAction.receiverId];
+            const roomName = generateRandomChars();
+            const roomStatus = createRoomHandler(roomName, userIds);
+            return {
+                statusCode: 200,
+                message: "Friend request accepted",
+                data: roomStatus,
+            };
+        }
 
         if (!requestAction) {
             return {

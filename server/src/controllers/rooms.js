@@ -3,6 +3,52 @@ import redisClient from "../config/redis.js";
 import giveError from "../utils/giveError.js";
 import { handleRequest } from "../utils/handleRequest.js";
 
+export async function createRoomHandler(name, userIds) {
+    const existingConversation = await prisma.conversation.findFirst({
+        where: {
+            participants: {
+                every: {
+                    userId: {
+                        in: userIds,
+                    },
+                },
+            },
+            isGroup: false,
+        },
+    });
+
+    if (existingConversation) {
+        return {
+            message: "Room already exists",
+            statusCode: 200,
+            data: existingConversation,
+        };
+    }
+
+    const conversation = await prisma.conversation.create({
+        data: {
+            name,
+            participants: {
+                create: userIds.map((userId) => ({ userId })),
+            },
+        },
+        include: {
+            participants: true,
+        },
+    });
+
+    await redisClient.set(
+        `conversation:${conversation.id}`,
+        JSON.stringify(conversation)
+    );
+
+    return {
+        message: "Room created successfully",
+        statusCode: 201,
+        data: conversation,
+    };
+}
+
 async function createRoom(req, res) {
     return handleRequest(res, async () => {
         const { name, userIds } = req.body;
@@ -22,49 +68,7 @@ async function createRoom(req, res) {
             };
         }
 
-        const existingConversation = await prisma.conversation.findFirst({
-            where: {
-                participants: {
-                    every: {
-                        userId: {
-                            in: userIds,
-                        },
-                    },
-                },
-                isGroup: false,
-            },
-        });
-
-        if (existingConversation) {
-            return {
-                message: "Room already exists",
-                statusCode: 200,
-                data: existingConversation,
-            };
-        }
-
-        const conversation = await prisma.conversation.create({
-            data: {
-                name,
-                participants: {
-                    create: userIds.map((userId) => ({ userId })),
-                },
-            },
-            include: {
-                participants: true,
-            },
-        });
-
-        await redisClient.set(
-            `conversation:${conversation.id}`,
-            JSON.stringify(conversation)
-        );
-
-        return {
-            message: "Room created successfully",
-            statusCode: 201,
-            data: conversation,
-        };
+        return createRoomHandler(name, userIds);
     });
 }
 

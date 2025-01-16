@@ -106,8 +106,11 @@ export function UserSearchCard({ user, loggedInUser }: UserSearchCardProps) {
                 )}
             </Avatar>
             <div className="ml-4 flex-1">
-                <h3 className="font-medium capitalize">{user.username}</h3>
-                <p className="text-sm text-muted-foreground">{user.email}</p>
+                <h3 className="font-medium capitalize">{user.name}</h3>
+                <p className="text-sm text-muted-foreground">
+                    @{user.username}
+                </p>
+                {/* <p className="text-sm text-muted-foreground">{user.email}</p> */}
             </div>
             <div className="flex gap-2">{renderButtons()}</div>
         </Card>
