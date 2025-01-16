@@ -28,10 +28,6 @@ export function UserSearchCard({ user, loggedInUser }: UserSearchCardProps) {
             true,
             false
         );
-        console.log({
-            friendId: user.id,
-            selfId: loggedInUser?.userId,
-        });
         if (response?.status !== "error") {
             setStatus("SENT");
         }

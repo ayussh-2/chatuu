@@ -19,7 +19,6 @@ interface FriendCardProps {
 }
 
 export function FriendCard({ friend }: FriendCardProps) {
-    console.log(friend);
     const { isLoading, makeRequest } = useApi();
     async function unfriend() {
         if (
@@ -60,28 +59,30 @@ export function FriendCard({ friend }: FriendCardProps) {
                     @{friend.username}
                 </p>
             </div>
-            <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon">
-                        <MoreVertical className="h-4 w-4" />
-                    </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                    <DropdownMenuItem className="hover:cursor-pointer">
-                        View Profile
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                        className="text-destructive hover:cursor-pointer"
-                        onClick={unfriend}
-                        disabled={isLoading}
-                    >
-                        Unfriend
-                    </DropdownMenuItem>
-                    {/* <DropdownMenuItem className="text-destructive">
-                        Block
-                    </DropdownMenuItem> */}
-                </DropdownMenuContent>
-            </DropdownMenu>
+            <div className="flex space-x-2 items-center">
+                <Button variant={"outline"} size="default">
+                    Chat
+                </Button>
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon">
+                            <MoreVertical className="h-4 w-4" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                        <DropdownMenuItem className="hover:cursor-pointer">
+                            View Profile
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                            className="text-destructive hover:cursor-pointer"
+                            onClick={unfriend}
+                            disabled={isLoading}
+                        >
+                            Unfriend
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            </div>
         </Card>
     );
 }

@@ -280,7 +280,7 @@ async function getFriendRequests(req, res) {
         const { userId } = req.body;
         const requests = await prisma.friendRequest.findMany({
             where: {
-                OR: [{ senderId: userId }, { receiverId: userId }],
+                receiverId: userId,
                 status: "PENDING",
             },
             include: {
