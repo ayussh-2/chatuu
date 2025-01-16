@@ -11,6 +11,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { UserType } from "@/types/auth/auth";
 import { Card } from "../ui/card";
+import { useApi } from "@/hooks/use-Api";
+import toast from "react-hot-toast";
 
 interface FriendCardProps {
     friend: UserType;
@@ -18,6 +20,31 @@ interface FriendCardProps {
 
 export function FriendCard({ friend }: FriendCardProps) {
     console.log(friend);
+    const { isLoading, makeRequest } = useApi();
+    async function unfriend() {
+        if (
+            !window.confirm(`Are you sure you want to unfriend ${friend.name}?`)
+        )
+            return;
+        const response = await makeRequest(
+            "POST",
+            "/user/manage-requests",
+            {
+                requestId: friend.requestId,
+                action: "REJECTED",
+            },
+            "Error unfriending user",
+            true,
+            false
+        );
+        if (response?.status === "success") {
+            toast.success("Unfriended successfully");
+            setTimeout(() => {
+                window.location.reload();
+            }, 2000);
+        }
+    }
+
     return (
         <Card className="flex items-center p-[1rem]">
             <Avatar className="h-12 w-12 bg-primary-foreground text-primary-background flex items-center justify-center  ">
@@ -40,13 +67,19 @@ export function FriendCard({ friend }: FriendCardProps) {
                     </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                    <DropdownMenuItem>View Profile</DropdownMenuItem>
-                    <DropdownMenuItem className="text-destructive">
+                    <DropdownMenuItem className="hover:cursor-pointer">
+                        View Profile
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                        className="text-destructive hover:cursor-pointer"
+                        onClick={unfriend}
+                        disabled={isLoading}
+                    >
                         Unfriend
                     </DropdownMenuItem>
-                    <DropdownMenuItem className="text-destructive">
+                    {/* <DropdownMenuItem className="text-destructive">
                         Block
-                    </DropdownMenuItem>
+                    </DropdownMenuItem> */}
                 </DropdownMenuContent>
             </DropdownMenu>
         </Card>

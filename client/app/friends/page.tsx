@@ -6,7 +6,7 @@ import { AddFriends } from "@/components/friends/add-friends";
 import { useApi } from "@/hooks/use-Api";
 import useUser from "@/hooks/use-user";
 import { useEffect, useState } from "react";
-import Loader from "@/components/ui/loader";
+import Loader from "@/components/loader/Loader";
 
 export default function FriendsPage() {
     const [data, setData] = useState({
@@ -72,7 +72,7 @@ export default function FriendsPage() {
 
     return (
         <section className="max-w-4xl mx-auto p-[2rem]">
-            {isLoading && <Loader />}
+            <Loader isLoading={isLoading} />
             <h1 className="text-2xl font-bold mb-6 font-syne">Friends</h1>
             <Tabs defaultValue="friends">
                 <TabsList className="mb-4">

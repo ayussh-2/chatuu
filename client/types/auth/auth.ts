@@ -13,4 +13,5 @@ export type UserType = {
     name?: string;
     userId?: number;
     profilePicture?: string;
+    requestId?: number;
 };
