@@ -1,5 +1,4 @@
 "use client";
-
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FriendsList } from "@/components/friends/friends-list";
 import { FriendRequests } from "@/components/friends/friend-request";
@@ -7,33 +6,69 @@ import { AddFriends } from "@/components/friends/add-friends";
 import { useApi } from "@/hooks/use-Api";
 import { Sidebar } from "@/components/chat/sidebar";
 import useUser from "@/hooks/use-user";
-import { useEffect } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Loader from "@/components/ui/loader";
+import { set } from "date-fns";
 
 export default function FriendsPage() {
-    const { isLoading, makeRequest } = useApi();
+    const [data, setData] = useState({
+        friends: [],
+        users: [],
+        friendRequests: [],
+    });
+    const [isLoading, setIsLoading] = useState(true);
+    const { makeRequest } = useApi();
     const user = useUser();
-    async function getFriends() {
-        console.log(user?.userId);
-        const response = await makeRequest(
-            "POST",
-            "/user/friends",
-            {
-                userId: user?.userId,
-            },
-            "Some Error occoured while fetching friends",
-            true,
-            false
-        );
-        if (!response) return;
-        console.log(response.data);
-    }
+
+    const fetchData = async () => {
+        if (!user?.userId) return;
+        try {
+            setIsLoading(true);
+            const [friendsResponse, requestsResponse, usersResponse] =
+                await Promise.all([
+                    makeRequest(
+                        "POST",
+                        "/user/friends",
+                        { userId: user.userId },
+                        "Error fetching friends",
+                        true,
+                        false
+                    ),
+                    makeRequest(
+                        "POST",
+                        "/user/requests",
+                        { userId: user.userId },
+                        "Error fetching friend requests",
+                        true,
+                        false
+                    ),
+                    makeRequest(
+                        "GET",
+                        "/user/users",
+                        {},
+                        "Error fetching users",
+                        true,
+                        false
+                    ),
+                ]);
+
+            setData({
+                friends: friendsResponse?.data || [],
+                friendRequests: requestsResponse?.data || [],
+                users: usersResponse?.data || [],
+            });
+        } catch (error) {
+            console.error("Error fetching friends data:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     useEffect(() => {
-        if (user) {
-            getFriends();
-        }
+        if (user) fetchData();
     }, [user]);
+
+    const { friends, friendRequests, users } = data;
 
     return (
         <section className="max-w-4xl mx-auto p-[2rem]">
@@ -46,13 +81,13 @@ export default function FriendsPage() {
                     <TabsTrigger value="add">Add Friends</TabsTrigger>
                 </TabsList>
                 <TabsContent value="friends">
-                    <FriendsList />
+                    <FriendsList friends={friends} />
                 </TabsContent>
                 <TabsContent value="requests">
-                    <FriendRequests />
+                    <FriendRequests friendRequests={friendRequests} />
                 </TabsContent>
                 <TabsContent value="add">
-                    <AddFriends />
+                    <AddFriends users={users} />
                 </TabsContent>
             </Tabs>
         </section>

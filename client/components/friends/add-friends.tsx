@@ -3,22 +3,21 @@
 import { useState, useEffect } from "react";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { mockUsers } from "@/config/friends";
 import { SearchResult } from "@/types/friends";
 import { Pagination } from "./pagination";
 import { UserSearchCard } from "./user-search-card";
 
 const ITEMS_PER_PAGE = 10;
 
-export function AddFriends() {
+export function AddFriends({ users }) {
     const [searchQuery, setSearchQuery] = useState("");
     const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
     const [currentPage, setCurrentPage] = useState(1);
 
     useEffect(() => {
-        const results = mockUsers.filter(
+        const results = users.filter(
             (user) =>
-                user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 user.username.toLowerCase().includes(searchQuery.toLowerCase())
         );
         setSearchResults(results);

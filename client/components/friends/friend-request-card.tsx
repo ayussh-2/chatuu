@@ -17,15 +17,17 @@ export function FriendRequestCard({ request }: FriendRequestCardProps) {
         <Card className="flex items-center p-[1rem]">
             <Avatar className="h-12 w-12 bg-primary-foreground text-primary-background flex items-center justify-center  ">
                 {request.sender.profilePicture ? (
-                    <span>{request.sender.name[0].toUpperCase()}</span>
-                ) : (
                     <User className="h-6 w-6" />
+                ) : (
+                    <span>{request.sender.username[0].toUpperCase()}</span>
                 )}
             </Avatar>
             <div className="ml-4 flex-1">
-                <h3 className="font-medium">{request.sender.name}</h3>
+                <h3 className="font-medium capitalize">
+                    {request.sender.username}
+                </h3>
                 <p className="text-sm text-muted-foreground">
-                    @{request.sender.username}
+                    {request.sender.email}
                 </p>
                 <p className="text-xs text-muted-foreground">Sent {timeAgo}</p>
             </div>

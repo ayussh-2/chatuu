@@ -22,4 +22,5 @@ export interface SearchResult {
     name: string;
     username: string;
     profilePicture?: string;
+    email: string;
 }

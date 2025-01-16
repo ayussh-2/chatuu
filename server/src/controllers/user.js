@@ -259,6 +259,20 @@ async function getFriendRequests(req, res) {
             where: {
                 OR: [{ senderId: userId }, { receiverId: userId }],
             },
+            include: {
+                sender: {
+                    select: {
+                        id: true,
+                        name: true,
+                        username: true,
+                        email: true,
+                        profilePicture: true,
+                    },
+                },
+            },
+            orderBy: {
+                sentAt: "desc",
+            },
         });
 
         return {
@@ -280,8 +294,6 @@ async function getFriends(req, res) {
                 ],
             },
         });
-
-        console.log(friends);
 
         return {
             statusCode: 200,
