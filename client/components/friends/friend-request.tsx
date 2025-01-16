@@ -1,14 +1,16 @@
 "use client";
 
-import { mockFriendRequests } from "@/config/friends";
 import { useState } from "react";
 import { FriendRequestCard } from "./friend-request-card";
 import { Pagination } from "./pagination";
+import { FriendRequest } from "@/types/friends";
 
 const ITEMS_PER_PAGE = 10;
+interface FriendRequestsProps {
+    friendRequests: FriendRequest[];
+}
 
-export function FriendRequests({ friendRequests }) {
-    console.log(friendRequests);
+export function FriendRequests({ friendRequests }: FriendRequestsProps) {
     const [currentPage, setCurrentPage] = useState(1);
     const totalPages = Math.ceil(friendRequests.length / ITEMS_PER_PAGE);
 

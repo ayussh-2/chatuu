@@ -4,11 +4,9 @@ import { FriendsList } from "@/components/friends/friends-list";
 import { FriendRequests } from "@/components/friends/friend-request";
 import { AddFriends } from "@/components/friends/add-friends";
 import { useApi } from "@/hooks/use-Api";
-import { Sidebar } from "@/components/chat/sidebar";
 import useUser from "@/hooks/use-user";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import Loader from "@/components/ui/loader";
-import { set } from "date-fns";
 
 export default function FriendsPage() {
     const [data, setData] = useState({
@@ -43,9 +41,11 @@ export default function FriendsPage() {
                         false
                     ),
                     makeRequest(
-                        "GET",
-                        "/user/users",
-                        {},
+                        "POST",
+                        "/user/non-friends",
+                        {
+                            userId: user.userId,
+                        },
                         "Error fetching users",
                         true,
                         false
@@ -87,7 +87,7 @@ export default function FriendsPage() {
                     <FriendRequests friendRequests={friendRequests} />
                 </TabsContent>
                 <TabsContent value="add">
-                    <AddFriends users={users} />
+                    <AddFriends users={users} loggedInUser={user} />
                 </TabsContent>
             </Tabs>
         </section>

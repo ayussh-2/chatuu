@@ -178,6 +178,29 @@ async function sendFriendRequest(req, res) {
                     };
                 }
             }
+
+            if (existingRequest.status === "CANCELED") {
+                if (existingRequest.senderId === selfId) {
+                    const friendRequest = await prisma.friendRequest.update({
+                        where: { id: existingRequest.id },
+                        data: {
+                            status: "PENDING",
+                        },
+                    });
+                    return {
+                        statusCode: 200,
+                        message: "Friend request resent",
+                        data: friendRequest,
+                    };
+                } else {
+                    return {
+                        statusCode: 400,
+                        message:
+                            "You cannot send a request. The other user must initiate.",
+                        data: existingRequest,
+                    };
+                }
+            }
         }
 
         const friendRequest = await prisma.friendRequest.create({
@@ -203,7 +226,7 @@ async function manageFriendRequest(req, res) {
             return {
                 statusCode: 400,
                 message: "Invalid request",
-                data: null,
+                data: "Missing requestId or action",
             };
         }
 
@@ -258,6 +281,7 @@ async function getFriendRequests(req, res) {
         const requests = await prisma.friendRequest.findMany({
             where: {
                 OR: [{ senderId: userId }, { receiverId: userId }],
+                status: "PENDING",
             },
             include: {
                 sender: {
@@ -293,12 +317,146 @@ async function getFriends(req, res) {
                     { receiverId: userId, status: "ACCEPTED" },
                 ],
             },
+            select: {
+                id: true,
+                sender: {
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                        username: true,
+                        profilePicture: true,
+                        createdAt: true,
+                    },
+                },
+                receiver: {
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                        username: true,
+                        profilePicture: true,
+                        createdAt: true,
+                    },
+                },
+            },
+        });
+
+        const transformedFriends = friends.map((friend) => {
+            const friendData =
+                friend.sender.id === userId ? friend.receiver : friend.sender;
+            return {
+                requestId: friend.id,
+                userId: friendData.id,
+                name: friendData.name,
+                email: friendData.email,
+                username: friendData.username,
+                profilePicture: friendData.profilePicture,
+                createdAt: friendData.createdAt,
+            };
         });
 
         return {
             statusCode: 200,
             message: "Friends found",
-            data: friends,
+            data: transformedFriends,
+        };
+    });
+}
+
+async function getNonFriends(req, res) {
+    return handleRequest(res, async () => {
+        const { userId } = req.body;
+        const nonFriends = await prisma.user.findMany({
+            where: {
+                AND: [
+                    {
+                        id: {
+                            not: userId,
+                        },
+                    },
+                    {
+                        receivedRequests: {
+                            none: {
+                                AND: [
+                                    { senderId: userId },
+                                    { status: "ACCEPTED" },
+                                ],
+                            },
+                        },
+                    },
+                    {
+                        sentRequests: {
+                            none: {
+                                AND: [
+                                    { receiverId: userId },
+                                    { status: "ACCEPTED" },
+                                ],
+                            },
+                        },
+                    },
+                ],
+            },
+            select: {
+                id: true,
+                name: true,
+                username: true,
+                email: true,
+                profilePicture: true,
+                createdAt: true,
+                // Get requests received from the current user
+                receivedRequests: {
+                    where: {
+                        senderId: userId,
+                    },
+                    select: {
+                        id: true,
+                        status: true,
+                    },
+                },
+                // Get requests sent to the current user
+                sentRequests: {
+                    where: {
+                        receiverId: userId,
+                    },
+                    select: {
+                        id: true,
+                        status: true,
+                    },
+                },
+            },
+        });
+
+        // Transform the data to include request status and ID when relevant
+        const transformedNonFriends = nonFriends.map((user) => {
+            let requestStatus = "NONE";
+            let requestId = null;
+
+            // Check received requests (requests from current user)
+            if (user.receivedRequests.length > 0) {
+                requestStatus = user.receivedRequests[0].status;
+                requestId = user.receivedRequests[0].id;
+            }
+            // Check sent requests (requests to current user)
+            else if (user.sentRequests.length > 0) {
+                requestStatus = user.sentRequests[0].status;
+                requestId = user.sentRequests[0].id;
+            }
+
+            // Remove the requests arrays and add status and id fields
+            const { receivedRequests, sentRequests, ...userWithoutRequests } =
+                user;
+            return {
+                ...userWithoutRequests,
+                requestStatus,
+                requestId,
+            };
+        });
+
+        return {
+            statusCode: 200,
+            message: "Non friends found",
+            data: transformedNonFriends,
         };
     });
 }
@@ -435,4 +593,5 @@ export {
     manageFriendRequest,
     searchUsers,
     sendFriendRequest,
+    getNonFriends,
 };

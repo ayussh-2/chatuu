@@ -5,6 +5,7 @@ export interface User {
     email: string;
     profilePicture?: string;
     createdAt: Date;
+    userId?: number;
 }
 
 export interface FriendRequest {
@@ -23,4 +24,7 @@ export interface SearchResult {
     username: string;
     profilePicture?: string;
     email: string;
+    createdAt: Date;
+    requestId?: number;
+    requestStatus?: "PENDING" | "ACCEPTED" | "REJECTED" | "CANCELED";
 }
