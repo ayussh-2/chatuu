@@ -7,6 +7,7 @@ import { FriendRequest, User as UserType } from "@/types/friends";
 import { Card } from "../ui/card";
 import { useApi } from "@/hooks/use-Api";
 import { useState } from "react";
+import Link from "next/link";
 
 interface FriendRequestCardProps {
     request: FriendRequest;
@@ -52,6 +53,14 @@ export function FriendRequestCard({ request }: FriendRequestCardProps) {
             <div className="flex gap-2">
                 {!status ? (
                     <>
+                        <Link
+                            href={`/profile/${request.sender.userId}`}
+                            passHref
+                        >
+                            <Button variant="default" size="sm">
+                                View Profile
+                            </Button>
+                        </Link>
                         <Button
                             variant="default"
                             size="sm"

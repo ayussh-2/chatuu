@@ -7,6 +7,7 @@ import { useApi } from "@/hooks/use-Api";
 import useUser from "@/hooks/use-user";
 import { useEffect, useState } from "react";
 import Loader from "@/components/loader/Loader";
+import { User } from "@/types/friends";
 
 export default function FriendsPage() {
     const [data, setData] = useState({
@@ -16,7 +17,7 @@ export default function FriendsPage() {
     });
     const [isLoading, setIsLoading] = useState(true);
     const { makeRequest } = useApi();
-    const user = useUser();
+    const user: User | null = useUser();
 
     const fetchData = async () => {
         if (!user?.userId) return;
@@ -81,13 +82,13 @@ export default function FriendsPage() {
                     <TabsTrigger value="add">Add Friends</TabsTrigger>
                 </TabsList>
                 <TabsContent value="friends">
-                    <FriendsList friends={friends} loggedInUser={user} />
+                    <FriendsList friends={friends} loggedInUser={user!} />
                 </TabsContent>
                 <TabsContent value="requests">
                     <FriendRequests friendRequests={friendRequests} />
                 </TabsContent>
                 <TabsContent value="add">
-                    <AddFriends users={users} loggedInUser={user} />
+                    <AddFriends users={users} loggedInUser={user!} />
                 </TabsContent>
             </Tabs>
         </section>

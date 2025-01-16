@@ -94,8 +94,6 @@ export default function Home() {
                     <MessageList userId={userId!} />
                     <MessageInput
                         activeContactId={activeContactId}
-                        isLoading={isLoading}
-                        makeRequest={makeRequest}
                         userId={userId!}
                     />
                 </div>

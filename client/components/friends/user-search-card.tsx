@@ -5,6 +5,7 @@ import { Card } from "../ui/card";
 import { SearchResult, User as UserType } from "@/types/friends";
 import { useApi } from "@/hooks/use-Api";
 import { useState } from "react";
+import Link from "next/link";
 
 interface UserSearchCardProps {
     user: SearchResult;
@@ -86,9 +87,11 @@ export function UserSearchCard({ user, loggedInUser }: UserSearchCardProps) {
                         Send Request
                     </Button>
                 )}
-                <Button variant="ghost" size="sm">
-                    View Profile
-                </Button>
+                <Link href={`/profile/${user.id}`} passHref>
+                    <Button variant="default" size="sm">
+                        View Profile
+                    </Button>
+                </Link>
             </>
         );
     };

@@ -26,6 +26,8 @@ async function getUserProfile(req, res) {
             username: user.username,
             email: user.email,
             createdAt: user.createdAt,
+            name: user.name,
+            id: user.id,
         };
 
         return {

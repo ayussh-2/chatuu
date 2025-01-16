@@ -15,6 +15,7 @@ import { useApi } from "@/hooks/use-Api";
 import toast from "react-hot-toast";
 import generateRandomChars from "@/utils/genRandomChars";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 interface FriendCardProps {
     friend: UserType;
@@ -96,9 +97,11 @@ export function FriendCard({ friend, loggedInUser }: FriendCardProps) {
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                        <DropdownMenuItem className="hover:cursor-pointer">
-                            View Profile
-                        </DropdownMenuItem>
+                        <Link href={`/profile/${friend.userId}`} passHref>
+                            <DropdownMenuItem className="hover:cursor-pointer">
+                                View Profile
+                            </DropdownMenuItem>
+                        </Link>
                         <DropdownMenuItem
                             className="text-destructive hover:cursor-pointer"
                             onClick={unfriend}

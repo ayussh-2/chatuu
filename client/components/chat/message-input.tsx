@@ -6,21 +6,21 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { Input } from "../ui/input";
 import { getSocket } from "@/utils/getSocket";
+import { useApi } from "@/hooks/use-Api";
 
 interface MessageInputProps {
     activeContactId: number;
-    makeRequest: any;
-    isLoading: boolean;
+
     userId: number;
 }
 
 export function MessageInput({
     activeContactId,
-    makeRequest,
-    isLoading,
+
     userId,
 }: MessageInputProps) {
     const [message, setMessage] = useState("");
+    const { isLoading, makeRequest } = useApi();
     const handleSend = async () => {
         if (!message.trim()) return;
         const socket = getSocket();

@@ -1,10 +1,11 @@
 "use client";
 
-import { Search, User } from "lucide-react";
+import { Plus, Search, User } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ChatList } from "./chat-list";
+import Link from "next/link";
 
 export function Sidebar() {
     return (
@@ -18,9 +19,11 @@ export function Sidebar() {
                 <h1 className="text-xl font-semibold text-white font-syne">
                     Chatuu
                 </h1>
-                <Button variant="ghost" size="icon">
-                    <User className="w-5 h-5" />
-                </Button>
+                <Link href="/friends">
+                    <Button variant="ghost" size="icon">
+                        <Plus />
+                    </Button>
+                </Link>
             </div>
 
             <div className="p-4">
