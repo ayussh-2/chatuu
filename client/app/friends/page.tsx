@@ -81,7 +81,7 @@ export default function FriendsPage() {
                     <TabsTrigger value="add">Add Friends</TabsTrigger>
                 </TabsList>
                 <TabsContent value="friends">
-                    <FriendsList friends={friends} />
+                    <FriendsList friends={friends} loggedInUser={user} />
                 </TabsContent>
                 <TabsContent value="requests">
                     <FriendRequests friendRequests={friendRequests} />

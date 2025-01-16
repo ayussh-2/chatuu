@@ -39,7 +39,7 @@ app.get("/", (req, res) => {
 
 app.use("/api/auth", authRoutes);
 app.use("/api/user", authenticateToken, userRoutes);
-app.use("/api/rooms", roomRoutes);
+app.use("/api/rooms", authenticateToken, roomRoutes);
 
 io.on("connection", (socket) => {
     console.log("A user connected " + socket.id);

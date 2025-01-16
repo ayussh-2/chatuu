@@ -6,7 +6,10 @@ import { useChatStore } from "@/lib/chat-store";
 
 export function ChatHeader() {
     const { contacts, activeContactId } = useChatStore();
-    const activeContact = contacts.find((c) => c.id === activeContactId);
+    const activeContact = contacts.find(
+        (c) => c.conversationId === activeContactId
+    );
+
     return (
         <motion.div
             initial={{ y: -50, opacity: 0 }}
@@ -16,12 +19,12 @@ export function ChatHeader() {
         >
             <div className="flex items-center space-x-4">
                 <Avatar>
-                    <div className="w-10 h-10 rounded-full bg-secondary text-white flex items-center justify-center font-syne">
+                    <div className="uppercase w-10 h-10 rounded-full bg-secondary text-white flex items-center justify-center font-syne">
                         {activeContact?.name[0]}
                     </div>
                 </Avatar>
                 <div>
-                    <h2 className="text-base font-semibold font-syne">
+                    <h2 className="text-base font-semibold font-syne capitalize">
                         {activeContact?.name}
                     </h2>
                     <p className="text-xs text-muted-foreground font-plusJakarta">

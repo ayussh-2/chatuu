@@ -13,13 +13,17 @@ import { UserType } from "@/types/auth/auth";
 import { Card } from "../ui/card";
 import { useApi } from "@/hooks/use-Api";
 import toast from "react-hot-toast";
+import generateRandomChars from "@/utils/genRandomChars";
+import { useRouter } from "next/navigation";
 
 interface FriendCardProps {
     friend: UserType;
+    loggedInUser: UserType;
 }
 
-export function FriendCard({ friend }: FriendCardProps) {
+export function FriendCard({ friend, loggedInUser }: FriendCardProps) {
     const { isLoading, makeRequest } = useApi();
+    const router = useRouter();
     async function unfriend() {
         if (
             !window.confirm(`Are you sure you want to unfriend ${friend.name}?`)
@@ -44,6 +48,24 @@ export function FriendCard({ friend }: FriendCardProps) {
         }
     }
 
+    async function createAndJoinChatRoom() {
+        const response = await makeRequest(
+            "POST",
+            "/rooms/create",
+            {
+                name: generateRandomChars(),
+                userIds: [friend.userId, loggedInUser.userId],
+            },
+            "Error creating chat room",
+            true,
+            false
+        );
+
+        if (response?.status === "success") {
+            router.push(`/chats?chatId=${response.data.id}`);
+        }
+    }
+
     return (
         <Card className="flex items-center p-[1rem]">
             <Avatar className="h-12 w-12 bg-primary-foreground text-primary-background flex items-center justify-center  ">
@@ -60,7 +82,11 @@ export function FriendCard({ friend }: FriendCardProps) {
                 </p>
             </div>
             <div className="flex space-x-2 items-center">
-                <Button variant={"outline"} size="default">
+                <Button
+                    variant={"outline"}
+                    size="default"
+                    onClick={createAndJoinChatRoom}
+                >
                     Chat
                 </Button>
                 <DropdownMenu>

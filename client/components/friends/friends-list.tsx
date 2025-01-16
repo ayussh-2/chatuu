@@ -2,12 +2,14 @@
 import { useState } from "react";
 import { FriendCard } from "./friend-card";
 import { Pagination } from "./pagination";
+import { User } from "@/types/friends";
 
-export function FriendsList({
-    friends,
-}: {
-    friends: { id: string; name: string; avatar: string; email: string }[];
-}) {
+interface FriendsListProps {
+    friends: User[];
+    loggedInUser: User;
+}
+
+export function FriendsList({ friends, loggedInUser }: FriendsListProps) {
     const ITEMS_PER_PAGE = 10;
     const [currentPage, setCurrentPage] = useState(1);
     const totalPages = Math.ceil(friends.length / ITEMS_PER_PAGE);
@@ -20,7 +22,11 @@ export function FriendsList({
     return (
         <div className="space-y-4">
             {paginatedFriends.map((friend) => (
-                <FriendCard key={friend.id} friend={friend} />
+                <FriendCard
+                    key={friend.id}
+                    friend={friend}
+                    loggedInUser={loggedInUser}
+                />
             ))}
             {totalPages > 1 && (
                 <Pagination

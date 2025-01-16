@@ -11,12 +11,26 @@ import { useApi } from "@/hooks/use-Api";
 import { useChatStore } from "@/lib/chat-store";
 import { getSocket } from "@/utils/getSocket";
 import useUser from "@/hooks/use-user";
+import { useSearchParams } from "next/navigation";
 
 export default function Home() {
     const { isLoading, makeRequest } = useApi();
-    const { setContacts, setMessages, activeContactId, addMessage } =
-        useChatStore();
+    const {
+        setContacts,
+        setMessages,
+        activeContactId,
+        addMessage,
+        setActiveContact,
+    } = useChatStore();
     const [userId, setUserId] = useState<number | null>(null);
+    const searchParams = useSearchParams();
+    const activeContactIdFromUrl = searchParams.get("chatId");
+
+    useEffect(() => {
+        if (activeContactIdFromUrl) {
+            setActiveContact(parseInt(activeContactIdFromUrl));
+        }
+    }, [activeContactIdFromUrl]);
 
     const user = useUser();
     async function getUserChats() {

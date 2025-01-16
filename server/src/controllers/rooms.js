@@ -1,10 +1,48 @@
 import prisma from "../config/prisma.js";
 import redisClient from "../config/redis.js";
 import giveError from "../utils/giveError.js";
+import { handleRequest } from "../utils/handleRequest.js";
 
 async function createRoom(req, res) {
-    const { name, userIds } = req.body;
-    try {
+    return handleRequest(res, async () => {
+        const { name, userIds } = req.body;
+        if (!name || !userIds) {
+            return {
+                message: "Name and userIds are required",
+                statusCode: 404,
+                data: null,
+            };
+        }
+
+        if (userIds.length < 2) {
+            return {
+                message: "At least two users are required",
+                statusCode: 400,
+                data: null,
+            };
+        }
+
+        const existingConversation = await prisma.conversation.findFirst({
+            where: {
+                participants: {
+                    every: {
+                        userId: {
+                            in: userIds,
+                        },
+                    },
+                },
+                isGroup: false,
+            },
+        });
+
+        if (existingConversation) {
+            return {
+                message: "Room already exists",
+                statusCode: 200,
+                data: existingConversation,
+            };
+        }
+
         const conversation = await prisma.conversation.create({
             data: {
                 name,
@@ -22,16 +60,12 @@ async function createRoom(req, res) {
             JSON.stringify(conversation)
         );
 
-        req.io.emit("roomCreated", conversation);
-
-        res.status(201).json({
+        return {
             message: "Room created successfully",
-            status: "success",
-            room: conversation,
-        });
-    } catch (err) {
-        giveError(err, res);
-    }
+            statusCode: 201,
+            data: conversation,
+        };
+    });
 }
 
 async function getRooms(req, res) {
@@ -136,7 +170,7 @@ async function sendMessage(req, res) {
         res.status(200).json({
             message: "Message sent successfully",
             status: "success",
-            message,
+            data: message,
         });
     } catch (err) {
         giveError(err, res);
