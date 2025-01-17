@@ -68,7 +68,7 @@ export function FriendCard({ friend, loggedInUser }: FriendCardProps) {
     }
 
     return (
-        <Card className="flex items-center p-[1rem]">
+        <Card className="flex items-center p-[0.5rem] smd:p-[1rem]">
             <Avatar className="h-12 w-12 bg-primary-foreground text-primary-background flex items-center justify-center  ">
                 {friend.profilePicture ? (
                     <span>{friend?.name?.[0]?.toUpperCase() ?? ""}</span>

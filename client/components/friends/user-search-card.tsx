@@ -97,7 +97,7 @@ export function UserSearchCard({ user, loggedInUser }: UserSearchCardProps) {
     };
 
     return (
-        <Card className="flex items-center p-4">
+        <Card className="flex smd:flex-row flex-col items-start smd:items-center p-3 smd:p-4">
             <Avatar className="h-12 w-12 bg-primary-foreground text-primary-background flex items-center justify-center">
                 {user.profilePicture ? (
                     <User className="h-6 w-6" />
@@ -105,14 +105,14 @@ export function UserSearchCard({ user, loggedInUser }: UserSearchCardProps) {
                     <span>{user.name[0].toUpperCase()}</span>
                 )}
             </Avatar>
-            <div className="ml-4 flex-1">
+            <div className="smd:ml-4 flex flex-col smd:flex-row">
                 <h3 className="font-medium capitalize">{user.name}</h3>
                 <p className="text-sm text-muted-foreground">
                     @{user.username}
                 </p>
                 {/* <p className="text-sm text-muted-foreground">{user.email}</p> */}
             </div>
-            <div className="flex gap-2">{renderButtons()}</div>
+            <div className="flex gap-2 my-2">{renderButtons()}</div>
         </Card>
     );
 }

@@ -17,6 +17,7 @@ export default function FriendsPage() {
     });
     const [isLoading, setIsLoading] = useState(true);
     const { makeRequest } = useApi();
+    // @ts-ignore - user is not null
     const user: User | null = useUser();
 
     const fetchData = async () => {
@@ -72,7 +73,7 @@ export default function FriendsPage() {
     const { friends, friendRequests, users } = data;
 
     return (
-        <section className="max-w-4xl mx-auto p-[2rem]">
+        <section className="max-w-4xl mx-auto p-[1rem] smd:p-[2rem]">
             <Loader isLoading={isLoading} />
             <h1 className="text-2xl font-bold mb-6 font-syne">Friends</h1>
             <Tabs defaultValue="friends">

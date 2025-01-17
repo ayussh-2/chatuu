@@ -59,7 +59,7 @@ export function ProfileHeader({ user }: { user: User }) {
         >
             <div className="h-48 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500" />
 
-            <div className="px-8 pb-8 -mt-20">
+            <div className="px-2 smd:px-8 pb-8 -mt-20">
                 <div className="relative inline-block">
                     <Avatar className="w-32 h-32 border-4 border-card">
                         <div className="w-32 h-32 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-4xl text-white font-semibold">
@@ -80,7 +80,7 @@ export function ProfileHeader({ user }: { user: User }) {
                             className="text-2xl font-bold"
                             isAllowedEditing={loggedInUser?.userId === user.id}
                         />
-                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                        <div className="flex smd:flex-row flex-col items-start smd:items-center gap-4 text-sm text-muted-foreground">
                             <div className="flex items-center gap-1">
                                 <User className="w-4 h-4" />
                                 <EditableField

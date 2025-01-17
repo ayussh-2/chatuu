@@ -38,7 +38,7 @@ export function FriendsList({ friends, loggedInUser }: FriendsListProps) {
 
             {!friends.length && (
                 <div className="grid place-items-center h-[60vh]">
-                    <h1 className="text-2xl font-bold font-plusJakarta">
+                    <h1 className="text-lg sm:text-2xl font-bold font-plusJakarta">
                         No friends yet! Start adding friends to see them here.
                     </h1>
                 </div>
