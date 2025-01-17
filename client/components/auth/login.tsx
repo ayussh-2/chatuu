@@ -48,7 +48,7 @@ export default function LoginForm({ toggleLogin }: LoginFormProps) {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.5 }}
             key="login"
-            className="flex flex-col gap-10 backdrop-blur-sm p-10 w-[26rem]"
+            className="flex flex-col gap-10 p-2 smd:p-10 smd:w-[26rem]"
         >
             <h2 className="text-4xl font-semibold text-center font-syne">
                 Welcome Back!

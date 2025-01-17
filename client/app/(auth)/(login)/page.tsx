@@ -42,7 +42,7 @@ export default function Home() {
                             <TextGenerateEffect
                                 words="Welcome to Chatuu"
                                 duration={2}
-                                className="text-4xl font-[600] font-syne"
+                                className="text-2xl smd:text-4xl font-[600] font-syne"
                             />
                         </motion.div>
                     )}
