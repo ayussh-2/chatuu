@@ -597,6 +597,38 @@ async function getRecentChats(req, res) {
     });
 }
 
+async function updateProfile(req, res) {
+    return handleRequest(res, async () => {
+        const { userId, username, name, email } = req.body;
+        const preExisting = await prisma.user.findFirst({
+            where: {
+                OR: [{ username }, { email }],
+                NOT: { id: userId },
+            },
+        });
+        if (preExisting) {
+            return {
+                statusCode: 400,
+                message: "Username or email already exists",
+                data: null,
+            };
+        }
+        const user = await prisma.user.update({
+            where: { id: userId },
+            data: {
+                username,
+                name,
+                email,
+            },
+        });
+        return {
+            statusCode: 200,
+            message: "Profile updated successfully",
+            data: user,
+        };
+    });
+}
+
 export {
     getFriendRequests,
     getFriends,
@@ -607,4 +639,5 @@ export {
     searchUsers,
     sendFriendRequest,
     getNonFriends,
+    updateProfile,
 };

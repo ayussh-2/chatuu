@@ -1,11 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Avatar } from "@/components/ui/avatar";
 import { Camera, User, Mail, Calendar } from "lucide-react";
 import { EditableField } from "./editable-field";
 import useUser from "@/hooks/use-user";
+import { Button } from "../ui/button";
+import { useApi } from "@/hooks/use-Api";
 
 interface User {
     name: string;
@@ -24,6 +26,29 @@ export function ProfileHeader({ user }: { user: User }) {
         year: "numeric",
     });
     const loggedInUser = useUser();
+    const { makeRequest, isLoading } = useApi();
+
+    async function updateUserProfile() {
+        if (!name || !username || !email) {
+            return;
+        }
+
+        const response = await makeRequest(
+            "PATCH",
+            "/user/profile",
+            {
+                userId: user.id,
+                name,
+                username,
+                email,
+            },
+            "Cannot update user profile",
+            true,
+            true
+        );
+
+        console.log(response);
+    }
 
     return (
         <motion.div
@@ -84,6 +109,16 @@ export function ProfileHeader({ user }: { user: User }) {
                             </div>
                         </div>
                     </div>
+                    {loggedInUser?.userId === user.id && (
+                        <Button
+                            variant={"outline"}
+                            disabled={isLoading}
+                            isLoading={isLoading}
+                            onClick={updateUserProfile}
+                        >
+                            Save Details
+                        </Button>
+                    )}
                 </div>
             </div>
         </motion.div>

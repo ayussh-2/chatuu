@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Shield, Key, Trash2 } from "lucide-react";
+import Link from "next/link";
 
 export function ProfileDetails() {
     return (
@@ -23,17 +24,22 @@ export function ProfileDetails() {
                     <Key className="w-5 h-5 text-muted-foreground" />
                 </div>
                 <div className="mt-4 space-y-4">
-                    <Button variant="outline" className="w-full justify-start">
-                        <Shield className="w-4 h-4 mr-2" />
-                        Change Password
-                    </Button>
-                    <Button
+                    <Link href="/reset">
+                        <Button
+                            variant="outline"
+                            className="w-full justify-start"
+                        >
+                            <Shield className="w-4 h-4 mr-2" />
+                            Change Password
+                        </Button>
+                    </Link>
+                    {/* <Button
                         variant="destructive"
                         className="w-full justify-start"
                     >
                         <Trash2 className="w-4 h-4 mr-2" />
                         Delete Account
-                    </Button>
+                    </Button> */}
                 </div>
             </Card>
         </motion.div>

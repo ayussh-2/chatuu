@@ -8,6 +8,7 @@ import {
     getFriendRequests,
     getRecentChats,
     getNonFriends,
+    updateProfile,
 } from "../controllers/user.js";
 import express from "express";
 
@@ -22,4 +23,5 @@ router.post("/friends", getFriends);
 router.post("/requests", getFriendRequests);
 router.post("/chats", getRecentChats);
 router.post("/non-friends", getNonFriends);
+router.patch("/profile", updateProfile);
 export default router;

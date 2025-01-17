@@ -17,7 +17,6 @@ function handleSetCookie(name: string, value: string) {
     try {
         cookies().set(name, value, {
             secure: true,
-            // 10 days
             expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 10),
         });
         return true;

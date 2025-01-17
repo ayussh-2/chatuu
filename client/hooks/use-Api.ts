@@ -12,7 +12,7 @@ export const useApi = () => {
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
     const makeRequest = async (
-        method: "GET" | "POST" | "PUT" | "DELETE",
+        method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH",
         endpoint: string,
         data?: any,
         errorMessage: string = "Request failed",
