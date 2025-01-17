@@ -5,7 +5,8 @@ import { useChatStore } from "@/lib/chat-store";
 
 export function MessageList({ userId }: { userId: number }) {
     const { messages, activeContactId } = useChatStore();
-    const activeMessages = messages[activeContactId] || [];
+    const activeMessages =
+        activeContactId !== null ? messages[activeContactId] || [] : [];
     const messagesEndRef = useRef<HTMLDivElement>(null);
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });

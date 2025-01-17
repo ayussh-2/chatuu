@@ -64,6 +64,7 @@ const config: Config = {
             screens: {
                 smd: "640px",
                 ssm: "444px",
+                sm: "350px",
             },
         },
     },

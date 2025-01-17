@@ -74,9 +74,9 @@ export function MessageInput({
                     placeholder="Say something..."
                     className="resize-none bg-background/50"
                 />
-                <Button variant="ghost" size="icon">
+                {/* <Button variant="ghost" size="icon">
                     <Smile className="w-5 h-5" />
-                </Button>
+                </Button> */}
                 <Button size="icon" onClick={handleSend} disabled={isLoading}>
                     {isLoading ? (
                         <LoaderCircle className="w-4 h-4 animate-spin" />

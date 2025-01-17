@@ -51,7 +51,7 @@ export function MainSidebar() {
             initial={{ x: -72, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             transition={{ duration: 0.3, ease: "easeOut" }}
-            className="w-[72px] h-screen bg-card/50 border-r border-border flex flex-col items-center py-4 fixed left-0 top-0 backdrop-blur-xl"
+            className="smd:flex hidden w-[72px] h-screen bg-card/50 border-r border-border  flex-col items-center py-4 fixed left-0 top-0 backdrop-blur-xl"
         >
             <div className="flex-1 flex flex-col items-center gap-2">
                 {navItems.map((item, i) => (

@@ -14,7 +14,7 @@ export function Sidebar({
     setIsOpen: (val: boolean) => void;
 }) {
     return (
-        <div className="relative h-screen ml-[72px]">
+        <div className="relative hidden smd:block h-screen ml-[72px]">
             <div
                 className={`fixed top-0 left-[72px] h-screen transition-all duration-300 ease-in-out 
                     ${isOpen ? "w-80" : "w-16"} 

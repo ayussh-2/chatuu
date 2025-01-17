@@ -6,7 +6,7 @@ export default function StartChatting() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
-            className="min-h-screen w-full grid place-items-center font-plusJakarta"
+            className="min-h-screen w-full hidden smd:grid place-items-center font-plusJakarta"
         >
             <div className="w-full max-w-lg rounded-lg shadow-lg p-8">
                 <h1 className="text-2xl font-bold text-center text-primary">

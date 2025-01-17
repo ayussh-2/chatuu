@@ -12,6 +12,7 @@ import { useChatStore } from "@/lib/chat-store";
 import { getSocket } from "@/utils/getSocket";
 import useUser from "@/hooks/use-user";
 import { useSearchParams } from "next/navigation";
+import MobileChatInterface from "@/components/chat/mobile-chatlist";
 
 export default function Home() {
     const [isOpen, setIsOpen] = useState(true);
@@ -119,10 +120,11 @@ export default function Home() {
         <div className="h-screen flex bg-background overflow-hidden">
             <Loader isLoading={isLoading} />
             <Sidebar isOpen={isOpen} setIsOpen={setIsOpen} />
+
             {activeContactId ? (
                 <div
                     className={`flex-1 flex flex-col transition-all duration-300 ${
-                        isOpen ? "ml-[248px]" : "-ml-[8px]"
+                        isOpen ? "smd:ml-[248px]" : "smd:-ml-[8px]"
                     }`}
                 >
                     <ChatHeader />
@@ -133,11 +135,16 @@ export default function Home() {
                     />
                 </div>
             ) : (
-                <div
-                    className={`flex-1 ${isOpen ? "ml-[248px]" : "-ml-[8px]"}`}
-                >
-                    <StartChatting />
-                </div>
+                <>
+                    <div
+                        className={`hidden smd:flex-1 ${
+                            isOpen ? "ml-[248px]" : "-ml-[8px]"
+                        }`}
+                    >
+                        <StartChatting />
+                    </div>
+                    <MobileChatInterface />
+                </>
             )}
         </div>
     );
