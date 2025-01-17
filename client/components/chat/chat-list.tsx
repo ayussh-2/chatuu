@@ -2,15 +2,14 @@ import { useChatStore } from "@/lib/chat-store";
 import { Avatar } from "@/components/ui/avatar";
 import { motion } from "framer-motion";
 
-export function ChatList({
-    collapsed = false,
-    unreadMessages,
-}: {
-    collapsed?: boolean;
-    unreadMessages: any[];
-}) {
-    const { contacts, messages, activeContactId, setActiveContact } =
-        useChatStore();
+export function ChatList({ collapsed = false }: { collapsed?: boolean }) {
+    const {
+        contacts,
+        messages,
+        activeContactId,
+        setActiveContact,
+        unreadMessages,
+    } = useChatStore();
 
     const getLastMessage = (contactId: number) => {
         const contactMessages = messages[contactId] || [];

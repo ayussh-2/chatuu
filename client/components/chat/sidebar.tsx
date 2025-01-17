@@ -4,15 +4,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ChatList } from "./chat-list";
 import Link from "next/link";
+import { useChatStore } from "@/lib/chat-store";
 
 export function Sidebar({
     isOpen,
     setIsOpen,
-    unreadMessages,
 }: {
     isOpen: boolean;
     setIsOpen: (val: boolean) => void;
-    unreadMessages: any[];
 }) {
     return (
         <div className="relative h-screen ml-[72px]">
@@ -65,7 +64,7 @@ export function Sidebar({
                     </div>
                 )}
 
-                <ChatList collapsed={!isOpen} unreadMessages={unreadMessages} />
+                <ChatList collapsed={!isOpen} />
             </div>
         </div>
     );

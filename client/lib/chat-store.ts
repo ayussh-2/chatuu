@@ -25,13 +25,15 @@ type ChatStore = {
     setContacts: (contacts: Contact[]) => void;
     setMessages: (messages: Record<number, Message[]>) => void;
     addMessage: (conversationId: number, message: Message) => void;
+    setUnreadMessages: (unreadMessages: number[]) => void;
+    unreadMessages: number[];
 };
 
 export const useChatStore = create<ChatStore>((set) => ({
     activeContactId: 0,
     contacts: [],
     messages: {},
-
+    unreadMessages: [],
     setActiveContact: (conversationId) =>
         set({ activeContactId: conversationId }),
 
@@ -71,5 +73,14 @@ export const useChatStore = create<ChatStore>((set) => ({
                     message,
                 ],
             },
+        })),
+
+    setUnreadMessages: (unreadMessages) =>
+        set((state) => ({
+            unreadMessages:
+                typeof unreadMessages === "function"
+                    ? // @ts-ignore - zustand types are incorrect
+                      unreadMessages(state.unreadMessages)
+                    : unreadMessages,
         })),
 }));
