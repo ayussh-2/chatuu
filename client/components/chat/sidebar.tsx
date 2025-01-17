@@ -26,7 +26,7 @@ export function Sidebar({
             >
                 {/* Toggle Button */}
                 <Button
-                    variant="ghost"
+                    variant="outline"
                     size="icon"
                     onClick={() => setIsOpen(!isOpen)}
                     className="absolute -right-4 top-1/2 transform -translate-y-1/2 z-40 rounded-full bg-background shadow-md"

@@ -1,27 +1,37 @@
 "use client";
-import React from "react";
-import { useLayoutEffect } from "react";
+import React, { useEffect } from "react";
 import { handleLogout } from "@/utils/actions/authHandler";
-import Cookies from "js-cookie";
-export default function Page() {
-    useLayoutEffect(() => {
-        const loggedOut = logOutUser();
-        if (loggedOut) {
-            window.location.href = "/";
-        }
-    });
+import { Card, CardContent } from "@/components/ui/card";
+import { Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
-    function logOutUser() {
-        const status = handleLogout();
-        if (status) {
-            Cookies.remove("chatuu-user");
+export default function Page() {
+    const router = useRouter();
+
+    useEffect(() => {
+        const loggedOut = handleLogout();
+        if (loggedOut) {
+            router.push("/");
         }
-        return status;
-    }
+    }, []);
 
     return (
-        <div>
-            <h1>Logging out...</h1>
+        <div className="min-h-screen w-full flex items-center justify-center bg-background">
+            <Card className="w-full max-w-md mx-4">
+                <CardContent className="pt-6">
+                    <div className="flex flex-col items-center space-y-4">
+                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                        <div className="space-y-2 text-center">
+                            <h1 className="text-2xl font-semibold tracking-tight font-syne">
+                                Signing out...
+                            </h1>
+                            <p className="text-sm text-muted-foreground font-plusJakarta">
+                                Thanks for using Chatuu. See you again soon!
+                            </p>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
         </div>
     );
 }

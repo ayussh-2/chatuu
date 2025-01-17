@@ -5,6 +5,7 @@ import { cookies } from "next/headers";
 function handleLogout() {
     try {
         cookies().set("chatuu-token", "", { expires: new Date(0) });
+        cookies().set("chatuu-user", "", { expires: new Date(0) });
         return true;
     } catch (error) {
         console.error(error);

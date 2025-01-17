@@ -107,7 +107,6 @@ export default function Home() {
             setUnreadMessages((prev) =>
                 prev.filter((id) => id !== activeContactId)
             );
-            console.log(activeContactId);
         }
         return () => {
             socket.off("message");
