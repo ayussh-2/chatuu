@@ -14,6 +14,8 @@ import useUser from "@/hooks/use-user";
 import { useSearchParams } from "next/navigation";
 
 export default function Home() {
+    const [isOpen, setIsOpen] = useState(true);
+
     const { isLoading, makeRequest } = useApi();
     const {
         setContacts,
@@ -80,16 +82,19 @@ export default function Home() {
 
         return () => {
             socket.off("message");
-            socket.emit("leaveRoom", activeContactId);
         };
     }, [activeContactId]);
 
     return (
-        <main className="h-screen flex bg-background">
+        <div className="h-screen flex bg-background overflow-hidden">
             <Loader isLoading={isLoading} />
-            <Sidebar />
+            <Sidebar isOpen={isOpen} setIsOpen={setIsOpen} />
             {activeContactId ? (
-                <div className="flex-1 flex flex-col">
+                <div
+                    className={`flex-1 flex flex-col transition-all duration-300 ${
+                        isOpen ? "ml-[248px]" : "-ml-[8px]"
+                    }`}
+                >
                     <ChatHeader />
                     <MessageList userId={userId!} />
                     <MessageInput
@@ -98,8 +103,12 @@ export default function Home() {
                     />
                 </div>
             ) : (
-                <StartChatting />
+                <div
+                    className={`flex-1 ${isOpen ? "ml-[248px]" : "-ml-[8px]"}`}
+                >
+                    <StartChatting />
+                </div>
             )}
-        </main>
+        </div>
     );
 }

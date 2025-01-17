@@ -45,7 +45,12 @@ io.on("connection", (socket) => {
     console.log("A user connected " + socket.id);
 
     socket.on("joinRoom", (roomId) => {
+        if (socket.rooms.has(roomId)) {
+            socket.emit("error", "Already joined this room");
+            return;
+        }
         socket.join(roomId);
+        socket.emit("roomJoined", roomId);
     });
 
     socket.on("leaveRoom", (roomId) => {

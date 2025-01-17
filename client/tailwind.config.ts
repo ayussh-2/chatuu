@@ -61,6 +61,10 @@ const config: Config = {
                 syne: "var(--font-syne)",
                 plusJakarta: "var(--font-plus-jakarta)",
             },
+            screens: {
+                smd: "640px",
+                ssm: "444px",
+            },
         },
     },
     // eslint-disable-next-line @typescript-eslint/no-require-imports
