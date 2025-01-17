@@ -2,7 +2,13 @@ import { useChatStore } from "@/lib/chat-store";
 import { Avatar } from "@/components/ui/avatar";
 import { motion } from "framer-motion";
 
-export function ChatList({ collapsed = false }) {
+export function ChatList({
+    collapsed = false,
+    unreadMessages,
+}: {
+    collapsed?: boolean;
+    unreadMessages: any[];
+}) {
     const { contacts, messages, activeContactId, setActiveContact } =
         useChatStore();
 
@@ -29,7 +35,6 @@ export function ChatList({ collapsed = false }) {
                     onClick={() => setActiveContact(chat.conversationId)}
                 >
                     {collapsed ? (
-                        // Collapsed view
                         <div className="relative flex justify-center">
                             <Avatar>
                                 <div className="w-10 h-10 rounded-full bg-secondary text-white flex items-center justify-center font-syne">
@@ -39,7 +44,7 @@ export function ChatList({ collapsed = false }) {
                             {chat.online && (
                                 <div className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-green-500 border-2 border-background" />
                             )}
-                            {chat.unread > 0 && (
+                            {unreadMessages.includes(chat.conversationId) && (
                                 <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-primary flex items-center justify-center">
                                     <span className="text-xs font-bold text-primary-foreground font-inter">
                                         {chat.unread}
@@ -65,10 +70,12 @@ export function ChatList({ collapsed = false }) {
                                     <p className="text-sm font-medium truncate font-syne">
                                         {chat.name}
                                     </p>
-                                    {chat.unread > 0 && (
+                                    {unreadMessages.includes(
+                                        chat.conversationId
+                                    ) && (
                                         <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center ml-2">
-                                            <span className="text-xs font-bold text-primary-foreground font-inter">
-                                                {chat.unread}
+                                            <span className="text-[8px] text-primary-foreground font-inter">
+                                                New
                                             </span>
                                         </div>
                                     )}

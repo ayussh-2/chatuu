@@ -27,6 +27,7 @@ export default function Home() {
     const [userId, setUserId] = useState<number | null>(null);
     const searchParams = useSearchParams();
     const activeContactIdFromUrl = searchParams.get("chatId");
+    const [unreadMessages, setUnreadMessages] = useState<any[]>([]);
 
     useEffect(() => {
         if (activeContactIdFromUrl) {
@@ -48,6 +49,18 @@ export default function Home() {
         const { contacts, messages } = response.data;
         setContacts(contacts);
         setMessages(messages);
+
+        const roomIds = contacts.map(
+            (contact: { conversationId: number }) => contact.conversationId
+        );
+        joinRooms(roomIds);
+    }
+
+    function joinRooms(roomIds: number[]) {
+        const socket = getSocket();
+        roomIds.forEach((roomId) => {
+            socket.emit("joinRoom", roomId);
+        });
     }
 
     useEffect(() => {
@@ -61,7 +74,15 @@ export default function Home() {
         const socket = getSocket();
         socket.on(
             "message",
-            ({ message, senderId }: { message: string; senderId: number }) => {
+            ({
+                message,
+                senderId,
+                roomId,
+            }: {
+                message: string;
+                senderId: number;
+                roomId: number;
+            }) => {
                 const now = new Date();
                 const newMessage = {
                     id: Date.now(),
@@ -74,12 +95,20 @@ export default function Home() {
                     }),
                     timestamp: now.getTime(),
                 };
-                addMessage(activeContactId, newMessage);
+
+                const unreadMessage = roomId !== activeContactId;
+                if (unreadMessage) {
+                    setUnreadMessages((prev) => [...prev, roomId]);
+                }
+                addMessage(roomId, newMessage);
             }
         );
-
-        socket.emit("joinRoom", activeContactId);
-
+        if (activeContactId) {
+            setUnreadMessages((prev) =>
+                prev.filter((id) => id !== activeContactId)
+            );
+            console.log(activeContactId);
+        }
         return () => {
             socket.off("message");
         };
@@ -88,7 +117,11 @@ export default function Home() {
     return (
         <div className="h-screen flex bg-background overflow-hidden">
             <Loader isLoading={isLoading} />
-            <Sidebar isOpen={isOpen} setIsOpen={setIsOpen} />
+            <Sidebar
+                isOpen={isOpen}
+                setIsOpen={setIsOpen}
+                unreadMessages={unreadMessages}
+            />
             {activeContactId ? (
                 <div
                     className={`flex-1 flex flex-col transition-all duration-300 ${

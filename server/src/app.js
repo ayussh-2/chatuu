@@ -50,6 +50,7 @@ io.on("connection", (socket) => {
             return;
         }
         socket.join(roomId);
+        console.log("User joined room " + roomId);
         socket.emit("roomJoined", roomId);
     });
 
@@ -58,7 +59,7 @@ io.on("connection", (socket) => {
     });
 
     socket.on("sendMessage", ({ roomId, message, senderId }) => {
-        io.to(roomId).emit("message", { senderId, message });
+        io.to(roomId).emit("message", { senderId, message, roomId });
     });
 
     socket.on("disconnect", () => {

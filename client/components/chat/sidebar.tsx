@@ -1,6 +1,5 @@
 "use client";
-import { Plus, Search, User, ChevronLeft, ChevronRight } from "lucide-react";
-import { useState } from "react";
+import { Plus, Search, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ChatList } from "./chat-list";
@@ -9,9 +8,11 @@ import Link from "next/link";
 export function Sidebar({
     isOpen,
     setIsOpen,
+    unreadMessages,
 }: {
     isOpen: boolean;
     setIsOpen: (val: boolean) => void;
+    unreadMessages: any[];
 }) {
     return (
         <div className="relative h-screen ml-[72px]">
@@ -64,7 +65,7 @@ export function Sidebar({
                     </div>
                 )}
 
-                <ChatList collapsed={!isOpen} />
+                <ChatList collapsed={!isOpen} unreadMessages={unreadMessages} />
             </div>
         </div>
     );
