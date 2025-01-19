@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import useUser from "@/hooks/use-user";
 import { Button } from "../ui/button";
+import useShowAtRoutes from "@/hooks/use-showAtRoutes";
 
 const navVariants = {
     initial: { opacity: 0, x: -20 },
@@ -31,9 +32,7 @@ export function MainSidebar() {
     const pathname = usePathname();
     const router = useRouter();
     const user = useUser();
-
-    if (pathname === "/" || pathname === "/reset" || pathname === "/logout")
-        return null;
+    if (!useShowAtRoutes()) return null;
 
     const isActive = (path: string) => pathname === path;
     const handleLogout = () => {

@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import useUser from "@/hooks/use-user";
 import { Button } from "../ui/button";
+import useShowAtRoutes from "@/hooks/use-showAtRoutes";
 
 const navVariants = {
     initial: { opacity: 0, y: 20 },
@@ -30,8 +31,7 @@ const MobileNavigation = () => {
     const router = useRouter();
     const user = useUser();
 
-    if (pathname === "/" || pathname === "/reset" || pathname === "/logout")
-        return null;
+    if (!useShowAtRoutes()) return null;
 
     const isActive = (path: string) => pathname === path;
 

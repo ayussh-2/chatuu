@@ -97,20 +97,22 @@ export function UserSearchCard({ user, loggedInUser }: UserSearchCardProps) {
     };
 
     return (
-        <Card className="flex smd:flex-row flex-col items-start smd:items-center p-3 smd:p-4">
-            <Avatar className="h-12 w-12 bg-primary-foreground text-primary-background flex items-center justify-center">
-                {user.profilePicture ? (
-                    <User className="h-6 w-6" />
-                ) : (
-                    <span>{user.name[0].toUpperCase()}</span>
-                )}
-            </Avatar>
-            <div className="smd:ml-4 flex flex-col smd:flex-row">
-                <h3 className="font-medium capitalize">{user.name}</h3>
-                <p className="text-sm text-muted-foreground">
-                    @{user.username}
-                </p>
-                {/* <p className="text-sm text-muted-foreground">{user.email}</p> */}
+        <Card className="flex smd:flex-row flex-col items-start smd:items-center p-3 smd:p-4 w-full justify-between">
+            <div className="flex items-center gap-4">
+                <Avatar className="h-12 w-12 bg-primary-foreground text-primary-background flex items-center justify-center">
+                    {user.profilePicture ? (
+                        <User className="h-6 w-6" />
+                    ) : (
+                        <span>{user.name[0].toUpperCase()}</span>
+                    )}
+                </Avatar>
+                <div className="smd:ml-4 flex flex-col ">
+                    <h3 className="font-medium capitalize">{user.name}</h3>
+                    <p className="text-sm text-muted-foreground">
+                        @{user.username}
+                    </p>
+                    {/* <p className="text-sm text-muted-foreground">{user.email}</p> */}
+                </div>
             </div>
             <div className="flex gap-2 my-2">{renderButtons()}</div>
         </Card>
