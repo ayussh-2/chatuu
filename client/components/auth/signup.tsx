@@ -3,14 +3,10 @@ import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { motion } from "framer-motion";
 import { SignupFormProps, UserType } from "@/types/auth/auth";
-import GoogleLogin from "./googleLogin";
 import { signupFields } from "@/config/auth/auth";
 import { useRouter } from "next/navigation";
 import { validateUser } from "@/utils/validateSchema";
-import {
-    handleSetCookie,
-    handleSetLoginCookies,
-} from "@/utils/actions/authHandler";
+import { handleSetLoginCookies } from "@/utils/actions/authHandler";
 import LoadingButton from "../ui/loading-button";
 import { useForm } from "@/hooks/useForm";
 import { useApi } from "@/hooks/use-Api";
@@ -65,7 +61,7 @@ export default function SignupForm({ toggleLogin }: SignupFormProps) {
                             type={field.type}
                             id={field.name}
                             name={field.name}
-                            // @ts-ignore - type errors
+                            // @ts-expect-error - type errors
                             value={formData[field.name as keyof UserType]}
                             onChange={handleInputChange}
                             className={

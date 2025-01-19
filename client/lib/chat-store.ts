@@ -90,7 +90,7 @@ export const useChatStore = create<ChatStore>((set, get) => ({
         set((state) => ({
             unreadMessages:
                 typeof unreadMessages === "function"
-                    ? // @ts-ignore - zustand types are incorrect
+                    ? // @ts-expect-error - zustand types are incorrect
                       unreadMessages(state.unreadMessages)
                     : unreadMessages,
         })),

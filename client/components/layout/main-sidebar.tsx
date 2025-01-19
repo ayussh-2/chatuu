@@ -9,7 +9,6 @@ import { cn } from "@/lib/utils";
 import useUser from "@/hooks/use-user";
 import { Button } from "../ui/button";
 import useShowAtRoutes from "@/hooks/use-showAtRoutes";
-import { ModeToggle } from "../theme-toggle";
 
 const navVariants = {
     initial: { opacity: 0, x: -20 },

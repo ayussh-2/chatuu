@@ -10,7 +10,6 @@ import { validateUser } from "@/utils/validateSchema";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import LoadingButton from "../ui/loading-button";
-import GoogleLogin from "./googleLogin";
 import { useApi } from "@/hooks/use-Api";
 import { handleSetLoginCookies } from "@/utils/actions/authHandler";
 
@@ -95,7 +94,7 @@ export default function LoginForm({ toggleLogin }: LoginFormProps) {
                     className="text-center"
                     onClick={toggleLogin}
                 >
-                    Don't have an account? Sign Up
+                    Don&apos;t have an account? Sign Up
                 </Button>
             </div>
             <hr />

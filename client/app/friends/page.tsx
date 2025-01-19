@@ -17,7 +17,7 @@ export default function FriendsPage() {
     });
     const [isLoading, setIsLoading] = useState(true);
     const { makeRequest } = useApi();
-    // @ts-ignore - user is not null
+    // @ts-expect-error - user is not null
     const user: User | null = useUser();
 
     const fetchData = async () => {

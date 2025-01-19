@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { Avatar } from "@/components/ui/avatar";
 import { Camera, User, Mail, Calendar } from "lucide-react";

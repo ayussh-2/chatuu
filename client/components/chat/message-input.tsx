@@ -1,6 +1,6 @@
 "use client";
 
-import { LoaderCircle, Send, Smile } from "lucide-react";
+import { LoaderCircle, Send } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";

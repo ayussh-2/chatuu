@@ -104,14 +104,14 @@ export default function Home() {
 
                 const unreadMessage = roomId !== activeContactId;
                 if (unreadMessage) {
-                    // @ts-ignore - zustand types are incorrect
+                    // @ts-expect-error - zustand types are incorrect
                     setUnreadMessages((prev) => [...prev, roomId]);
                 }
                 addMessage(roomId, newMessage);
             }
         );
         if (activeContactId) {
-            // @ts-ignore - zustand types are incorrect
+            // @ts-expect-error - zustand types are incorrect
             setUnreadMessages((prev: number[]) =>
                 prev.filter((id) => id !== activeContactId)
             );

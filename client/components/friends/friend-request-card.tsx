@@ -3,7 +3,7 @@
 import { User } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { FriendRequest, User as UserType } from "@/types/friends";
+import { FriendRequest } from "@/types/friends";
 import { Card } from "../ui/card";
 import { useApi } from "@/hooks/use-Api";
 import { useState } from "react";

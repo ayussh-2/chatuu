@@ -5,7 +5,6 @@ import { Avatar } from "@/components/ui/avatar";
 import { useChatStore } from "@/lib/chat-store";
 import { Button } from "../ui/button";
 import { ChevronLeft } from "lucide-react";
-import { ModeToggle } from "../theme-toggle";
 
 export function ChatHeader() {
     const { contacts, activeContactId, setActiveContact } = useChatStore();

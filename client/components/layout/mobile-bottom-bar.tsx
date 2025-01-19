@@ -5,26 +5,7 @@ import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import useUser from "@/hooks/use-user";
-import { Button } from "../ui/button";
 import useShowAtRoutes from "@/hooks/use-showAtRoutes";
-
-const navVariants = {
-    initial: { opacity: 0, y: 20 },
-    animate: (i: number) => ({
-        opacity: 1,
-        y: 0,
-        transition: {
-            delay: i * 0.1,
-            duration: 0.3,
-        },
-    }),
-    hover: {
-        scale: 1.1,
-        transition: {
-            duration: 0.2,
-        },
-    },
-};
 
 const MobileNavigation = () => {
     const pathname = usePathname();

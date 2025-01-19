@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import axios from "axios";
-import { handleSetLoginCookies } from "@/utils/actions/authHandler";
+// import { handleSetLoginCookies } from "@/utils/actions/authHandler";
 
 export async function GET(request: NextRequest) {
     try {

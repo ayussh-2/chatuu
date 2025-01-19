@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Shield, Key, Trash2 } from "lucide-react";
+import { Shield, Key } from "lucide-react";
 import Link from "next/link";
 
 export function ProfileDetails() {
