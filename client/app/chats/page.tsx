@@ -26,6 +26,7 @@ export default function Home() {
         setActiveContact,
         setUnreadMessages,
     } = useChatStore();
+
     const [userId, setUserId] = useState<number | null>(null);
     const searchParams = useSearchParams();
     const activeContactIdFromUrl = searchParams.get("chatId");
@@ -54,12 +55,16 @@ export default function Home() {
         const roomIds = contacts.map(
             (contact: { conversationId: number }) => contact.conversationId
         );
-        joinRooms(roomIds);
+        joinLatestRooms(roomIds);
     }
 
-    function joinRooms(roomIds: number[]) {
+    function joinLatestRooms(roomIds: number[]) {
+        const MAX_ROOMS = 5;
         const socket = getSocket();
-        roomIds.forEach((roomId) => {
+
+        const limitedRoomIds = roomIds.slice(0, MAX_ROOMS);
+
+        limitedRoomIds.forEach((roomId) => {
             socket.emit("joinRoom", roomId);
         });
     }

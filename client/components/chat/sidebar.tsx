@@ -13,6 +13,8 @@ export function Sidebar({
     isOpen: boolean;
     setIsOpen: (val: boolean) => void;
 }) {
+    const setSearchQuery = useChatStore((state) => state.setSearchQuery);
+
     return (
         <div className="relative hidden smd:block h-screen ml-[72px]">
             <div
@@ -23,7 +25,6 @@ export function Sidebar({
                     zIndex: 1000,
                 }}
             >
-                {/* Toggle Button */}
                 <Button
                     variant="outline"
                     size="icon"
@@ -37,7 +38,6 @@ export function Sidebar({
                     )}
                 </Button>
 
-                {/* Header */}
                 <div className="p-3 flex items-center justify-between border-b">
                     {isOpen && (
                         <h1 className="text-xl font-semibold text-white font-syne">
@@ -51,7 +51,6 @@ export function Sidebar({
                     </Link>
                 </div>
 
-                {/* Search */}
                 {isOpen && (
                     <div className="p-4">
                         <div className="relative">
@@ -59,6 +58,7 @@ export function Sidebar({
                             <Input
                                 placeholder="Search Contacts..."
                                 className="pl-9 bg-background/50"
+                                onChange={(e) => setSearchQuery(e.target.value)}
                             />
                         </div>
                     </div>

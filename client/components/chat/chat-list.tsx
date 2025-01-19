@@ -4,12 +4,14 @@ import { motion } from "framer-motion";
 
 export function ChatList({ collapsed = false }: { collapsed?: boolean }) {
     const {
-        contacts,
         messages,
         activeContactId,
         setActiveContact,
         unreadMessages,
+        getFilteredContacts,
     } = useChatStore();
+
+    const filteredContacts = getFilteredContacts();
 
     const getLastMessage = (contactId: number) => {
         const contactMessages = messages[contactId] || [];
@@ -18,7 +20,7 @@ export function ChatList({ collapsed = false }: { collapsed?: boolean }) {
 
     return (
         <div className="flex-1 overflow-y-auto">
-            {contacts.map((chat, i) => (
+            {filteredContacts.map((chat, i) => (
                 <motion.div
                     key={chat.conversationId}
                     initial={{ opacity: 0, y: 20 }}
@@ -52,7 +54,6 @@ export function ChatList({ collapsed = false }: { collapsed?: boolean }) {
                             )}
                         </div>
                     ) : (
-                        // Expanded view
                         <div className="flex items-center space-x-4">
                             <div className="relative">
                                 <Avatar>

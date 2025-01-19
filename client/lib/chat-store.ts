@@ -20,6 +20,7 @@ type ChatStore = {
     contacts: Contact[];
     messages: Record<number, Message[]>;
     activeContactId: number | null;
+    searchQuery: string;
     setActiveContact: (conversationId: number | null) => void;
     sendMessage: (content: string, senderId: number) => void;
     setContacts: (contacts: Contact[]) => void;
@@ -27,9 +28,13 @@ type ChatStore = {
     addMessage: (conversationId: number, message: Message) => void;
     setUnreadMessages: (unreadMessages: number[]) => void;
     unreadMessages: number[];
+    searchContacts: (query: string) => Contact[];
+    setSearchQuery: (query: string) => void;
+    getFilteredContacts: () => Contact[];
 };
 
-export const useChatStore = create<ChatStore>((set) => ({
+export const useChatStore = create<ChatStore>((set, get) => ({
+    searchQuery: "",
     activeContactId: null,
     contacts: [],
     messages: {},
@@ -87,4 +92,21 @@ export const useChatStore = create<ChatStore>((set) => ({
                       unreadMessages(state.unreadMessages)
                     : unreadMessages,
         })),
+
+    searchContacts: (query: string) => {
+        const { contacts } = get();
+        const normalizedQuery = query.toLowerCase();
+        return contacts.filter((contact) =>
+            contact.name.toLowerCase().includes(normalizedQuery)
+        );
+    },
+
+    setSearchQuery: (query) => set({ searchQuery: query }),
+
+    getFilteredContacts: () => {
+        const { contacts, searchQuery } = get();
+        return contacts.filter((contact) =>
+            contact.name.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+    },
 }));

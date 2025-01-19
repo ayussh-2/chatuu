@@ -12,7 +12,6 @@ const useShowAtRoutes = (): boolean => {
             }
             return pathname === pattern;
         }
-        // Handle regex patterns
         if (pattern instanceof RegExp) {
             return pattern.test(pathname);
         }
