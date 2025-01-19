@@ -9,10 +9,13 @@ export default function Page() {
     const router = useRouter();
 
     useEffect(() => {
-        const loggedOut = handleLogout();
-        if (loggedOut) {
-            router.push("/");
+        async function logoutUser() {
+            const isLoggedOut = await handleLogout();
+            if (isLoggedOut) {
+                router.push("/");
+            }
         }
+        logoutUser();
     }, []);
 
     return (

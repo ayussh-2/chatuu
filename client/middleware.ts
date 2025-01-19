@@ -6,13 +6,17 @@ const publicRoutes = ["/"];
 
 export default async function middleware(req: NextRequest) {
     const cookie = cookies().get("chatuu-token")?.value;
+    const user = cookies().get("chatuu-user")?.value;
+
+    const userStatus = cookie && user ? true : false;
+
     const isProtectedRoute = protectedRoutes.includes(req.nextUrl.pathname);
     const isPublicRoute = publicRoutes.includes(req.nextUrl.pathname);
 
-    if (isProtectedRoute && !cookie) {
+    if (isProtectedRoute && !userStatus) {
         const absoluteUrl = new URL("/", req.nextUrl.origin);
         return NextResponse.redirect(absoluteUrl.toString());
-    } else if (isPublicRoute && cookie) {
+    } else if (isPublicRoute && userStatus) {
         const absoluteUrl = new URL("/chats", req.nextUrl.origin);
         return NextResponse.redirect(absoluteUrl.toString());
     }

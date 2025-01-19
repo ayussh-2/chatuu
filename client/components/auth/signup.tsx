@@ -7,8 +7,10 @@ import GoogleLogin from "./googleLogin";
 import { signupFields } from "@/config/auth/auth";
 import { useRouter } from "next/navigation";
 import { validateUser } from "@/utils/validateSchema";
-import Cookies from "js-cookie";
-import { handleSetCookie } from "@/utils/actions/authHandler";
+import {
+    handleSetCookie,
+    handleSetLoginCookies,
+} from "@/utils/actions/authHandler";
 import LoadingButton from "../ui/loading-button";
 import { useForm } from "@/hooks/useForm";
 import { useApi } from "@/hooks/use-Api";
@@ -35,8 +37,8 @@ export default function SignupForm({ toggleLogin }: SignupFormProps) {
             );
             if (!response || response.status === "error") return;
             const { data } = response;
-            handleSetCookie("chatuu-token", data.token);
-            Cookies.set("chatuu-user", JSON.stringify(data));
+
+            handleSetLoginCookies(data.token, data);
             router.push("/chats");
         } else {
             console.log("Form validation failed");
@@ -63,6 +65,7 @@ export default function SignupForm({ toggleLogin }: SignupFormProps) {
                             type={field.type}
                             id={field.name}
                             name={field.name}
+                            // @ts-ignore - type errors
                             value={formData[field.name as keyof UserType]}
                             onChange={handleInputChange}
                             className={

@@ -7,13 +7,12 @@ import { loginFields } from "@/config/auth/auth";
 import { useForm } from "@/hooks/useForm";
 import { LoginFormProps } from "@/types/auth/auth";
 import { validateUser } from "@/utils/validateSchema";
-import Cookies from "js-cookie";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import LoadingButton from "../ui/loading-button";
 import GoogleLogin from "./googleLogin";
 import { useApi } from "@/hooks/use-Api";
-import { handleSetCookie } from "@/utils/actions/authHandler";
+import { handleSetLoginCookies } from "@/utils/actions/authHandler";
 
 export default function LoginForm({ toggleLogin }: LoginFormProps) {
     const router = useRouter();
@@ -34,8 +33,11 @@ export default function LoginForm({ toggleLogin }: LoginFormProps) {
             );
             if (!response || response.status === "error") return;
             const { data } = response;
-            handleSetCookie("chatuu-token", data.token);
-            Cookies.set("chatuu-user", JSON.stringify(data));
+            const cookieStatus = await handleSetLoginCookies(data.token, data);
+            if (!cookieStatus) {
+                console.error("Failed to set cookies");
+                return;
+            }
             router.push("/chats");
         } else {
             console.log("Form is invalid");
