@@ -12,7 +12,7 @@ async function handleGoogleLogin() {
 export default function GoogleLogin() {
     return (
         <Button
-            variant="ghost"
+            variant="outline"
             className="text-center"
             onClick={handleGoogleLogin}
         >

@@ -3,6 +3,7 @@ import passport from "passport";
 
 import {
     createUser,
+    getProfileFromToken,
     googleCallback,
     loginUser,
     resetPassword,
@@ -22,6 +23,8 @@ router.get(
         scope: ["profile", "email"],
     })
 );
+
+router.get("/profile", getProfileFromToken);
 
 router.get(
     "/callback/google",

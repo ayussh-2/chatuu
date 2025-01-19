@@ -3,7 +3,7 @@ import { config } from "dotenv";
 
 import prisma from "../config/prisma.js";
 import redisClient from "../config/redis.js";
-import { generateToken, handleRequest } from "../utils/utils.js";
+import { generateToken, handleRequest, decodeToken } from "../utils/utils.js";
 
 config();
 
@@ -198,4 +198,43 @@ async function resetPassword(req, res) {
     });
 }
 
-export { createUser, googleCallback, loginUser, resetPassword };
+async function getProfileFromToken(req, res) {
+    return handleRequest(res, async () => {
+        const authHeader = req.headers.authorization;
+
+        if (!authHeader || !authHeader.startsWith("Bearer ")) {
+            return {
+                statusCode: 400,
+                message: "Authorization header is missing or malformed",
+                data: null,
+            };
+        }
+        const token = authHeader.split(" ")[1];
+
+        const user = decodeToken(token);
+        if (!user) {
+            return {
+                statusCode: 400,
+                message: "Invalid token",
+                data: null,
+            };
+        }
+
+        const userData = await prisma.user.findUnique({
+            where: { id: user.id },
+        });
+        return {
+            statusCode: 200,
+            message: "User found",
+            data: userData,
+        };
+    });
+}
+
+export {
+    createUser,
+    googleCallback,
+    loginUser,
+    resetPassword,
+    getProfileFromToken,
+};

@@ -98,7 +98,7 @@ export default function SignupForm({ toggleLogin }: SignupFormProps) {
                 </Button>
             </div>
             <hr />
-            <GoogleLogin />
+            {/* <GoogleLogin /> */}
         </motion.div>
     );
 }

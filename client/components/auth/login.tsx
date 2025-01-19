@@ -85,10 +85,11 @@ export default function LoginForm({ toggleLogin }: LoginFormProps) {
                     loading={isLoading}
                     onClick={handleSubmit}
                     disabled={isLoading}
-                    className="btn-primary bg-white"
+                    className="btn-primary bg-black  dark:bg-white"
                 >
                     Login
                 </LoadingButton>
+
                 <Button
                     variant="link"
                     className="text-center"
@@ -98,7 +99,7 @@ export default function LoginForm({ toggleLogin }: LoginFormProps) {
                 </Button>
             </div>
             <hr />
-            <GoogleLogin />
+            {/* <GoogleLogin /> */}
         </motion.div>
     );
 }

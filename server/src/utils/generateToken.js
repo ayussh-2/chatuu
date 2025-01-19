@@ -2,9 +2,9 @@ import jwt from "jsonwebtoken";
 
 export default function generateToken(user) {
     const payload = {
-        id: user._id,
+        id: user.id,
         email: user.email,
-        isAdmin: user.isAdmin,
+        username: user.username,
     };
 
     const secret = process.env.JWT_SECRET;

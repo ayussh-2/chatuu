@@ -3,6 +3,7 @@ import { config } from "dotenv";
 import prisma from "../config/prisma.js";
 import { handleRequest, generateRandomChars } from "../utils/utils.js";
 import { createRoomHandler } from "./rooms.js";
+import decodeToken from "../utils/decodeToken.js";
 config();
 
 async function getUserProfile(req, res) {

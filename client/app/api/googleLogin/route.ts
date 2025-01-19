@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
+import axios from "axios";
+import { handleSetLoginCookies } from "@/utils/actions/authHandler";
 
-export function GET(request: NextRequest) {
+export async function GET(request: NextRequest) {
     try {
         const url = new URL(request.url);
 
@@ -13,8 +14,30 @@ export function GET(request: NextRequest) {
                 { status: 400 }
             );
         }
-        cookies().set("jwt", token, { secure: true });
-        return NextResponse.redirect(new URL("/chats", request.url));
+
+        const user = await axios.get(
+            process.env.NEXT_PUBLIC_API_BASE_URL + "/auth/auth/profile",
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            }
+        );
+
+        return NextResponse.json(user.data.data);
+
+        // if (!user.data) {
+        //     return NextResponse.json(
+        //         { message: "User not found" },
+        //         { status: 404 }
+        //     );
+        // }
+
+        // console.log("User data:", user.data.data);
+
+        // const cookieStatus = await handleSetLoginCookies(token, user.data.data);
+
+        // return NextResponse.redirect(new URL("/chats", request.url));
     } catch (error) {
         console.error(error);
         return NextResponse.json(
