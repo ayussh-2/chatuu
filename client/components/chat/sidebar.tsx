@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { ChatList } from "./chat-list";
 import Link from "next/link";
 import { useChatStore } from "@/lib/chat-store";
+import { ModeToggle } from "../theme-toggle";
 
 export function Sidebar({
     isOpen,
@@ -44,11 +45,14 @@ export function Sidebar({
                             Chatuu
                         </h1>
                     )}
-                    <Link href="/friends">
-                        <Button variant="ghost" size="icon">
-                            <Plus className={isOpen ? "" : "mx-auto"} />
-                        </Button>
-                    </Link>
+                    <div>
+                        <Link href="/friends">
+                            <Button variant="ghost" size="icon">
+                                <Plus className={isOpen ? "" : "mx-auto"} />
+                            </Button>
+                        </Link>
+                        <ModeToggle />
+                    </div>
                 </div>
 
                 {isOpen && (

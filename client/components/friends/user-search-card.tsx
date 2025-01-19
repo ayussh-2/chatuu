@@ -1,4 +1,4 @@
-import { User } from "lucide-react";
+import { User, UserPlus } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card } from "../ui/card";
@@ -84,12 +84,19 @@ export function UserSearchCard({ user, loggedInUser }: UserSearchCardProps) {
                         onClick={sendRequest}
                         isLoading={isLoading}
                     >
-                        Send Request
+                        <span className="flex items-center gap-1">
+                            <UserPlus size={16} />
+                            <span className="smd:block hidden">
+                                {" "}
+                                Send Request
+                            </span>
+                        </span>
                     </Button>
                 )}
                 <Link href={`/profile/${user.id}`} passHref>
                     <Button variant="default" size="sm">
-                        View Profile
+                        <User size={16} />
+                        <span className="smd:block hidden"> View Profile</span>
                     </Button>
                 </Link>
             </>
@@ -97,7 +104,7 @@ export function UserSearchCard({ user, loggedInUser }: UserSearchCardProps) {
     };
 
     return (
-        <Card className="flex smd:flex-row flex-col items-start smd:items-center p-3 smd:p-4 w-full justify-between">
+        <Card className="flex items-start smd:items-center p-3 smd:p-4 w-full justify-between">
             <div className="flex items-center gap-4">
                 <Avatar className="h-12 w-12 bg-primary-foreground text-primary-background flex items-center justify-center">
                     {user.profilePicture ? (

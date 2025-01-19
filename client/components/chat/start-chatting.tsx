@@ -9,7 +9,7 @@ export default function StartChatting() {
             className="min-h-screen w-full hidden smd:grid place-items-center font-plusJakarta"
         >
             <div className="w-full max-w-lg rounded-lg shadow-lg p-8">
-                <h1 className="text-2xl font-bold text-center text-primary">
+                <h1 className="text-2xl font-bold text-center text-black">
                     Start Chatting
                 </h1>
                 <p className="text-center text-muted-foreground mt-4">
