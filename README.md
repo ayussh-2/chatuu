@@ -41,7 +41,7 @@ Ensure you have the following installed:
 
 #### Clone the Repository
 
-    git clone https://github.com/your-username/chatuu.git
+    git clone https://github.com/ayussh-2/chatuu.git
     cd chatuu
 
 #### Frontend Setup
@@ -61,14 +61,15 @@ Ensure you have the following installed:
 #### Backend Setup
 
 1.  To configure the backend, define environment variables inside the `.env` file with the following content:
-
-    DATABASE_URL=postgresql://postgres:password@db:5432/chatuu?schema=public
-    REDIS_URL=redis://redis:6379
-    CLIENT_URL=http://localhost:3000
-    JWT_SECRET=your-secret-key
-    GOOGLE_CLIENT_ID=
-    GOOGLE_CLIENT_SECRET=
-    GOOGLE_CALLBACK_URL=http://localhost:5000/api/auth/callback/google
+```
+     DATABASE_URL=postgresql://postgres:password@db:5432/chatuu?schema=public
+     REDIS_URL=redis://redis:6379
+     CLIENT_URL=http://localhost:3000
+     JWT_SECRET=your-secret-key
+     GOOGLE_CLIENT_ID=
+     GOOGLE_CLIENT_SECRET=
+     GOOGLE_CALLBACK_URL=http://localhost:5000/api/auth/callback/google
+```
 
 2.  Here is an example `docker-compose.yml` file for reference:
 
