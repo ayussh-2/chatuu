@@ -4,10 +4,10 @@ import { Input } from "@/components/ui/input";
 import { ChatList } from "./chat-list";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { useState } from "react";
+import { useChatStore } from "@/lib/chat-store";
 
 const MobileChatInterface = () => {
-    const [searchFocused, setSearchFocused] = useState(false);
+    const setSearchQuery = useChatStore((state) => state.setSearchQuery);
 
     return (
         <div className="h-[100dvh] w-full">
@@ -36,8 +36,7 @@ const MobileChatInterface = () => {
                             <Input
                                 placeholder="Search Contacts..."
                                 className="pl-9 bg-background/50"
-                                onFocus={() => setSearchFocused(true)}
-                                onBlur={() => setSearchFocused(false)}
+                                onChange={(e) => setSearchQuery(e.target.value)}
                             />
                         </div>
                     </div>

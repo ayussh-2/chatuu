@@ -8,10 +8,8 @@ export function ChatList({ collapsed = false }: { collapsed?: boolean }) {
         activeContactId,
         setActiveContact,
         unreadMessages,
-        getFilteredContacts,
+        filteredContacts,
     } = useChatStore();
-
-    const filteredContacts = getFilteredContacts();
 
     const getLastMessage = (contactId: number) => {
         const contactMessages = messages[contactId] || [];
@@ -88,6 +86,12 @@ export function ChatList({ collapsed = false }: { collapsed?: boolean }) {
                     )}
                 </motion.div>
             ))}
+
+            {filteredContacts.length === 0 && (
+                <div className="flex items-center justify-center h-full">
+                    <p className="text-muted-foreground">No chats found. :) </p>
+                </div>
+            )}
         </div>
     );
 }

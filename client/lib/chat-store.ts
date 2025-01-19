@@ -18,6 +18,7 @@ type Contact = {
 
 type ChatStore = {
     contacts: Contact[];
+    filteredContacts: Contact[]; // New state for filtered contacts
     messages: Record<number, Message[]>;
     activeContactId: number | null;
     searchQuery: string;
@@ -28,20 +29,18 @@ type ChatStore = {
     addMessage: (conversationId: number, message: Message) => void;
     setUnreadMessages: (unreadMessages: number[]) => void;
     unreadMessages: number[];
-    searchContacts: (query: string) => Contact[];
     setSearchQuery: (query: string) => void;
-    getFilteredContacts: () => Contact[];
 };
 
 export const useChatStore = create<ChatStore>((set, get) => ({
     searchQuery: "",
     activeContactId: null,
     contacts: [],
+    filteredContacts: [], // Initialize filtered contacts
     messages: {},
     unreadMessages: [],
     setActiveContact: (conversationId) =>
         set({ activeContactId: conversationId }),
-
     sendMessage: (content, senderId) =>
         set((state) => {
             const newMessage = {
@@ -53,11 +52,9 @@ export const useChatStore = create<ChatStore>((set, get) => ({
                     minute: "2-digit",
                 }),
             };
-
             if (state.activeContactId === null) {
                 return state;
             }
-
             return {
                 messages: {
                     ...state.messages,
@@ -68,11 +65,17 @@ export const useChatStore = create<ChatStore>((set, get) => ({
                 },
             };
         }),
-
-    setContacts: (contacts) => set({ contacts }),
-
+    setContacts: (contacts) =>
+        set((state) => ({
+            contacts,
+            // Update filtered contacts when contacts change
+            filteredContacts: contacts.filter((contact) =>
+                contact.name
+                    .toLowerCase()
+                    .includes(state.searchQuery.toLowerCase())
+            ),
+        })),
     setMessages: (messages) => set({ messages }),
-
     addMessage: (conversationId, message) =>
         set((state) => ({
             messages: {
@@ -83,7 +86,6 @@ export const useChatStore = create<ChatStore>((set, get) => ({
                 ],
             },
         })),
-
     setUnreadMessages: (unreadMessages) =>
         set((state) => ({
             unreadMessages:
@@ -92,21 +94,12 @@ export const useChatStore = create<ChatStore>((set, get) => ({
                       unreadMessages(state.unreadMessages)
                     : unreadMessages,
         })),
-
-    searchContacts: (query: string) => {
-        const { contacts } = get();
-        const normalizedQuery = query.toLowerCase();
-        return contacts.filter((contact) =>
-            contact.name.toLowerCase().includes(normalizedQuery)
-        );
-    },
-
-    setSearchQuery: (query) => set({ searchQuery: query }),
-
-    getFilteredContacts: () => {
-        const { contacts, searchQuery } = get();
-        return contacts.filter((contact) =>
-            contact.name.toLowerCase().includes(searchQuery.toLowerCase())
-        );
-    },
+    setSearchQuery: (query) =>
+        set((state) => ({
+            searchQuery: query,
+            // Update filtered contacts when search query changes
+            filteredContacts: state.contacts.filter((contact) =>
+                contact.name.toLowerCase().includes(query.toLowerCase())
+            ),
+        })),
 }));
