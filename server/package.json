@@ -10,6 +10,7 @@
     "scripts": {
         "dev": "nodemon --legacy-watch ./src/index.js",
         "start": "node ./src/index.js",
+        "prisma-migrate": "npx prisma migrate dev --name init",
         "docker-migrate": "docker-compose exec app yarn prisma migrate dev",
         "docker-restart": "docker-compose down && docker-compose build && docker-compose up -d && docker-compose exec app yarn prisma generate",
         "docker-generate": "docker-compose exec app yarn prisma generate",
