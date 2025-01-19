@@ -151,9 +151,8 @@ Here is an example `docker-compose.yml` file for reference:
         container_name: redis-server
         ports:
             - "6379:6379"
-
-volumes:
-postgres_data:
+    volumes:
+        postgres_data:
 
 Run the application:
 
@@ -175,6 +174,7 @@ Access the application:
 -   🎨 **TailwindCSS**
 -   ✅ **React Hook Form**
 -   ⚡ **Socket.io Client**
+-   🪄 **ShadCN UI**
 
 ### Backend
 
