@@ -40,7 +40,7 @@ export function Sidebar({
 
                 <div className="p-3 flex items-center justify-between border-b">
                     {isOpen && (
-                        <h1 className="text-xl font-semibold text-white font-syne">
+                        <h1 className="text-xl font-semibold dark:text-white text-black font-syne">
                             Chatuu
                         </h1>
                     )}

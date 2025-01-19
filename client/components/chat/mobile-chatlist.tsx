@@ -5,12 +5,13 @@ import { ChatList } from "./chat-list";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useChatStore } from "@/lib/chat-store";
+import { ModeToggle } from "../theme-toggle";
 
 const MobileChatInterface = () => {
     const setSearchQuery = useChatStore((state) => state.setSearchQuery);
 
     return (
-        <div className="h-[100dvh] w-full">
+        <div className="h-[100dvh] w-full smd:hidden">
             <AnimatePresence mode="wait">
                 <motion.div
                     key="chat-list"
@@ -20,14 +21,17 @@ const MobileChatInterface = () => {
                     className="h-full flex flex-col"
                 >
                     <div className="px-4 py-3 flex items-center justify-between border-b bg-card/50 backdrop-blur-xl">
-                        <h1 className="text-xl font-semibold text-white font-syne">
+                        <h1 className="text-xl font-semibold text-black dark:dark:text-white text-black font-syne">
                             Chatuu
                         </h1>
-                        <Link href="/friends">
-                            <Button variant="ghost" size="icon">
-                                <Plus />
-                            </Button>
-                        </Link>
+                        <div>
+                            <Link href="/friends">
+                                <Button variant="ghost" size="icon">
+                                    <Plus />
+                                </Button>
+                            </Link>
+                            <ModeToggle />
+                        </div>
                     </div>
 
                     <div className="p-4 bg-card/50">

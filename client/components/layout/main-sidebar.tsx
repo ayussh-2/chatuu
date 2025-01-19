@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import useUser from "@/hooks/use-user";
 import { Button } from "../ui/button";
 import useShowAtRoutes from "@/hooks/use-showAtRoutes";
+import { ModeToggle } from "../theme-toggle";
 
 const navVariants = {
     initial: { opacity: 0, x: -20 },
@@ -79,7 +80,7 @@ export function MainSidebar() {
                             <item.icon className="w-6 h-6" />
                         </Link>
                     </motion.div>
-                ))}
+                ))}{" "}
             </div>
 
             <Button variant={"ghost"} size={"icon"} onClick={handleLogout}>

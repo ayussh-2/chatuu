@@ -62,7 +62,7 @@ export function ProfileHeader({ user }: { user: User }) {
             <div className="px-2 smd:px-8 pb-8 -mt-20">
                 <div className="relative inline-block">
                     <Avatar className="w-32 h-32 border-4 border-card">
-                        <div className="w-32 h-32 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-4xl text-white font-semibold">
+                        <div className="w-32 h-32 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-4xl dark:text-white text-black font-semibold">
                             {name[0]}
                         </div>
                     </Avatar>

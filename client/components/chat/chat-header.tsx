@@ -5,6 +5,7 @@ import { Avatar } from "@/components/ui/avatar";
 import { useChatStore } from "@/lib/chat-store";
 import { Button } from "../ui/button";
 import { ChevronLeft } from "lucide-react";
+import { ModeToggle } from "../theme-toggle";
 
 export function ChatHeader() {
     const { contacts, activeContactId, setActiveContact } = useChatStore();
@@ -29,7 +30,7 @@ export function ChatHeader() {
                     <ChevronLeft size={20} />
                 </Button>
                 <Avatar>
-                    <div className="uppercase w-10 h-10 rounded-full bg-secondary text-white flex items-center justify-center font-syne">
+                    <div className="uppercase w-10 h-10 rounded-full bg-secondary dark:text-white text-black flex items-center justify-center font-syne">
                         {activeContact?.name[0]}
                     </div>
                 </Avatar>

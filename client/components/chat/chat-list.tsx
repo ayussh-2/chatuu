@@ -36,7 +36,7 @@ export function ChatList({ collapsed = false }: { collapsed?: boolean }) {
                     {collapsed ? (
                         <div className="relative flex justify-center">
                             <Avatar>
-                                <div className="w-10 h-10 rounded-full bg-secondary text-white flex items-center justify-center font-syne">
+                                <div className="w-10 h-10 rounded-full bg-secondary dark:text-white text-black flex items-center justify-center font-syne">
                                     {chat.name[0]}
                                 </div>
                             </Avatar>
@@ -55,7 +55,7 @@ export function ChatList({ collapsed = false }: { collapsed?: boolean }) {
                         <div className="flex items-center space-x-4">
                             <div className="relative">
                                 <Avatar>
-                                    <div className="w-10 h-10 rounded-full bg-secondary text-white flex items-center justify-center font-syne">
+                                    <div className="w-10 h-10 rounded-full bg-secondary dark:text-white text-black flex items-center justify-center font-syne">
                                         {chat.name[0]}
                                     </div>
                                 </Avatar>
