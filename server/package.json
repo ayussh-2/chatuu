@@ -13,7 +13,10 @@
         "docker-migrate": "docker-compose exec app yarn prisma migrate dev",
         "docker-restart": "docker-compose down && docker-compose build && docker-compose up -d && docker-compose exec app yarn prisma generate",
         "docker-generate": "docker-compose exec app yarn prisma generate",
-        "docker-logs": "docker-compose logs -f"
+        "docker-logs": "docker-compose logs -f",
+        "docker-build": "docker build -t chatuu-server . ",
+        "docker-down": "docker-compose down",
+        "docker-up": "docker-compose up -d"
     },
     "dependencies": {
         "@prisma/client": "^5.20.0",
