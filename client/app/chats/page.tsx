@@ -128,7 +128,7 @@ export default function Home() {
 
             {activeContactId ? (
                 <div
-                    className={`flex-1 flex flex-col transition-all duration-300 ${
+                    className={`flex-1 flex flex-col transition-all duration-300 dark:bg-black bg-white ${
                         isOpen ? "smd:ml-[248px]" : "smd:-ml-[8px]"
                     }`}
                 >

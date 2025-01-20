@@ -64,7 +64,7 @@ export function MessageInput({
             initial={{ y: 50, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.5 }}
-            className="p-4 border-t bg-card/50 backdrop-blur-xl"
+            className="bottom-0 left-0 right-0 h-20 px-2 py-5 border-t bg-card/50 backdrop-blur-xl"
         >
             <div className="flex items-end space-x-2">
                 <Input
