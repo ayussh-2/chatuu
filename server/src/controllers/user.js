@@ -7,6 +7,8 @@ import redisController from "../utils/redis/redisController.js";
 
 config();
 
+const CACHE_EXPIRATION = process.env.CACHE_EXPIRATION || 300;
+
 async function getUserProfile(req, res) {
     return handleRequest(res, async () => {
         const { userId } = req.body;
@@ -293,30 +295,43 @@ async function manageFriendRequest(req, res) {
 async function getFriendRequests(req, res) {
     return handleRequest(res, async () => {
         const { userId } = req.body;
-        const requests = await prisma.friendRequest.findMany({
-            where: {
-                receiverId: userId,
-                status: "PENDING",
-            },
-            include: {
-                sender: {
-                    select: {
-                        id: true,
-                        name: true,
-                        username: true,
-                        email: true,
-                        profilePicture: true,
+
+        const cacheKey = `friend_requests:${userId}`;
+
+        const { data: requests, cached } = await redisController.getOrSet(
+            cacheKey,
+            async () => {
+                const requests = await prisma.friendRequest.findMany({
+                    where: {
+                        receiverId: userId,
+                        status: "PENDING",
                     },
-                },
+                    include: {
+                        sender: {
+                            select: {
+                                id: true,
+                                name: true,
+                                username: true,
+                                email: true,
+                                profilePicture: true,
+                            },
+                        },
+                    },
+                    orderBy: {
+                        sentAt: "desc",
+                    },
+                });
+
+                return requests;
             },
-            orderBy: {
-                sentAt: "desc",
-            },
-        });
+            CACHE_EXPIRATION
+        );
 
         return {
             statusCode: 200,
-            message: "Friend requests found",
+            message: cached
+                ? "Requests retrieved from cache"
+                : "Requests retrieved successfully",
             data: requests,
         };
     });
@@ -325,55 +340,71 @@ async function getFriendRequests(req, res) {
 async function getFriends(req, res) {
     return handleRequest(res, async () => {
         const { userId } = req.body;
-        const friends = await prisma.friendRequest.findMany({
-            where: {
-                OR: [
-                    { senderId: userId, status: "ACCEPTED" },
-                    { receiverId: userId, status: "ACCEPTED" },
-                ],
-            },
-            select: {
-                id: true,
-                sender: {
-                    select: {
-                        id: true,
-                        name: true,
-                        email: true,
-                        username: true,
-                        profilePicture: true,
-                        createdAt: true,
-                    },
-                },
-                receiver: {
-                    select: {
-                        id: true,
-                        name: true,
-                        email: true,
-                        username: true,
-                        profilePicture: true,
-                        createdAt: true,
-                    },
-                },
-            },
-        });
 
-        const transformedFriends = friends.map((friend) => {
-            const friendData =
-                friend.sender.id === userId ? friend.receiver : friend.sender;
-            return {
-                requestId: friend.id,
-                userId: friendData.id,
-                name: friendData.name,
-                email: friendData.email,
-                username: friendData.username,
-                profilePicture: friendData.profilePicture,
-                createdAt: friendData.createdAt,
-            };
-        });
+        const cacheKey = `friends:${userId}`;
+
+        const { data: transformedFriends, cached } =
+            await redisController.getOrSet(
+                cacheKey,
+                async () => {
+                    const friends = await prisma.friendRequest.findMany({
+                        where: {
+                            OR: [
+                                { senderId: userId, status: "ACCEPTED" },
+                                { receiverId: userId, status: "ACCEPTED" },
+                            ],
+                        },
+                        select: {
+                            id: true,
+                            sender: {
+                                select: {
+                                    id: true,
+                                    name: true,
+                                    email: true,
+                                    username: true,
+                                    profilePicture: true,
+                                    createdAt: true,
+                                },
+                            },
+                            receiver: {
+                                select: {
+                                    id: true,
+                                    name: true,
+                                    email: true,
+                                    username: true,
+                                    profilePicture: true,
+                                    createdAt: true,
+                                },
+                            },
+                        },
+                    });
+
+                    const transformedFriends = friends.map((friend) => {
+                        const friendData =
+                            friend.sender.id === userId
+                                ? friend.receiver
+                                : friend.sender;
+                        return {
+                            requestId: friend.id,
+                            userId: friendData.id,
+                            name: friendData.name,
+                            email: friendData.email,
+                            username: friendData.username,
+                            profilePicture: friendData.profilePicture,
+                            createdAt: friendData.createdAt,
+                        };
+                    });
+
+                    return transformedFriends;
+                },
+                CACHE_EXPIRATION
+            );
 
         return {
             statusCode: 200,
-            message: "Friends found",
+            message: cached
+                ? "Friends retrieved from cache"
+                : "Friends retrieved successfully",
             data: transformedFriends,
         };
     });
@@ -382,95 +413,108 @@ async function getFriends(req, res) {
 async function getNonFriends(req, res) {
     return handleRequest(res, async () => {
         const { userId } = req.body;
-        const nonFriends = await prisma.user.findMany({
-            where: {
-                AND: [
-                    {
-                        id: {
-                            not: userId,
+
+        const cacheKey = `non_friends:${userId}`;
+        const { data: transformedNonFriends, cached } =
+            await redisController.getOrSet(
+                cacheKey,
+                async () => {
+                    const nonFriends = await prisma.user.findMany({
+                        where: {
+                            AND: [
+                                {
+                                    id: {
+                                        not: userId,
+                                    },
+                                },
+                                {
+                                    receivedRequests: {
+                                        none: {
+                                            AND: [
+                                                { senderId: userId },
+                                                { status: "ACCEPTED" },
+                                            ],
+                                        },
+                                    },
+                                },
+                                {
+                                    sentRequests: {
+                                        none: {
+                                            AND: [
+                                                { receiverId: userId },
+                                                { status: "ACCEPTED" },
+                                            ],
+                                        },
+                                    },
+                                },
+                            ],
                         },
-                    },
-                    {
-                        receivedRequests: {
-                            none: {
-                                AND: [
-                                    { senderId: userId },
-                                    { status: "ACCEPTED" },
-                                ],
+                        select: {
+                            id: true,
+                            name: true,
+                            username: true,
+                            email: true,
+                            profilePicture: true,
+                            createdAt: true,
+                            receivedRequests: {
+                                where: {
+                                    senderId: userId,
+                                },
+                                select: {
+                                    id: true,
+                                    status: true,
+                                },
+                            },
+                            sentRequests: {
+                                where: {
+                                    receiverId: userId,
+                                },
+                                select: {
+                                    id: true,
+                                    status: true,
+                                },
                             },
                         },
-                    },
-                    {
-                        sentRequests: {
-                            none: {
-                                AND: [
-                                    { receiverId: userId },
-                                    { status: "ACCEPTED" },
-                                ],
-                            },
-                        },
-                    },
-                ],
-            },
-            select: {
-                id: true,
-                name: true,
-                username: true,
-                email: true,
-                profilePicture: true,
-                createdAt: true,
-                // Get requests received from the current user
-                receivedRequests: {
-                    where: {
-                        senderId: userId,
-                    },
-                    select: {
-                        id: true,
-                        status: true,
-                    },
+                    });
+
+                    const transformedNonFriends = nonFriends.map((user) => {
+                        let requestStatus = "NONE";
+                        let requestId = null;
+
+                        // Check received requests (requests from current user)
+                        if (user.receivedRequests.length > 0) {
+                            requestStatus = user.receivedRequests[0].status;
+                            requestId = user.receivedRequests[0].id;
+                        }
+                        // Check sent requests (requests to current user)
+                        else if (user.sentRequests.length > 0) {
+                            requestStatus = user.sentRequests[0].status;
+                            requestId = user.sentRequests[0].id;
+                        }
+
+                        // Remove the requests arrays and add status and id fields
+                        const {
+                            receivedRequests,
+                            sentRequests,
+                            ...userWithoutRequests
+                        } = user;
+                        return {
+                            ...userWithoutRequests,
+                            requestStatus,
+                            requestId,
+                        };
+                    });
+
+                    return transformedNonFriends;
                 },
-                // Get requests sent to the current user
-                sentRequests: {
-                    where: {
-                        receiverId: userId,
-                    },
-                    select: {
-                        id: true,
-                        status: true,
-                    },
-                },
-            },
-        });
-
-        // Transform the data to include request status and ID when relevant
-        const transformedNonFriends = nonFriends.map((user) => {
-            let requestStatus = "NONE";
-            let requestId = null;
-
-            // Check received requests (requests from current user)
-            if (user.receivedRequests.length > 0) {
-                requestStatus = user.receivedRequests[0].status;
-                requestId = user.receivedRequests[0].id;
-            }
-            // Check sent requests (requests to current user)
-            else if (user.sentRequests.length > 0) {
-                requestStatus = user.sentRequests[0].status;
-                requestId = user.sentRequests[0].id;
-            }
-
-            // Remove the requests arrays and add status and id fields
-            const { receivedRequests, sentRequests, ...userWithoutRequests } =
-                user;
-            return {
-                ...userWithoutRequests,
-                requestStatus,
-                requestId,
-            };
-        });
+                CACHE_EXPIRATION
+            );
 
         return {
             statusCode: 200,
-            message: "Non friends found",
+            message: cached
+                ? "Non-friends retrieved from cache"
+                : "Non-friends retrieved successfully",
             data: transformedNonFriends,
         };
     });
@@ -593,7 +637,7 @@ async function getRecentChats(req, res) {
 
                 return { contacts, messages };
             },
-            300
+            CACHE_EXPIRATION
         );
 
         return {

@@ -8,7 +8,6 @@ const CACHE_KEYS = {
     MESSAGES: (conversationId) => `messages:${conversationId}`,
     FRIEND_REQUESTS: (userId) => `friend_requests:${userId}`,
     USER_SETTINGS: (userId) => `user_settings:${userId}`,
-    NOTIFICATIONS: (userId) => `notifications:${userId}`,
 };
 
 const INVALIDATION_EVENTS = {
@@ -19,7 +18,6 @@ const INVALIDATION_EVENTS = {
     FRIEND_REQUEST_RESPONDED: "FRIEND_REQUEST_RESPONDED",
     USER_UPDATED: "USER_UPDATED",
     USER_STATUS_CHANGED: "USER_STATUS_CHANGED",
-    NOTIFICATION_RECEIVED: "NOTIFICATION_RECEIVED",
 };
 
 class CacheInvalidator {
