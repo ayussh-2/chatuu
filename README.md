@@ -157,9 +157,6 @@ We welcome contributions! Please follow these steps:
 
 ---
 
-## Status
-[![Netlify Status](https://api.netlify.com/api/v1/badges/f3a835ad-5f7e-43e1-93fe-34cb1845cf7a/deploy-status)](https://app.netlify.com/sites/chatuu/deploys)
-
 ## ⚖️ License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
