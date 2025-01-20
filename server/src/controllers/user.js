@@ -3,7 +3,8 @@ import { config } from "dotenv";
 import prisma from "../config/prisma.js";
 import { handleRequest, generateRandomChars } from "../utils/utils.js";
 import { createRoomHandler } from "./rooms.js";
-import decodeToken from "../utils/decodeToken.js";
+import redisController from "../utils/redis/redisController.js";
+
 config();
 
 async function getUserProfile(req, res) {
@@ -487,113 +488,120 @@ async function getRecentChats(req, res) {
             };
         }
 
-        const userConversations = await prisma.participant.findMany({
-            where: {
-                userId: userId,
-            },
-            select: {
-                conversation: {
-                    include: {
-                        participants: {
+        const cacheKey = `recent_chats:${userId}`;
+
+        const { data: chatData, cached } = await redisController.getOrSet(
+            cacheKey,
+            async () => {
+                const userConversations = await prisma.participant.findMany({
+                    where: { userId },
+                    select: {
+                        conversation: {
                             include: {
-                                user: {
-                                    select: {
-                                        id: true,
-                                        username: true,
-                                        profilePicture: true,
+                                participants: {
+                                    include: {
+                                        user: {
+                                            select: {
+                                                id: true,
+                                                username: true,
+                                                profilePicture: true,
+                                            },
+                                        },
                                     },
                                 },
-                            },
-                        },
-                        messages: {
-                            orderBy: {
-                                createdAt: "desc",
-                            },
-                            take: 20,
-                            include: {
-                                sender: {
-                                    select: {
-                                        id: true,
-                                        name: true,
-                                        username: true,
+                                messages: {
+                                    orderBy: { createdAt: "desc" },
+                                    take: 20,
+                                    include: {
+                                        sender: {
+                                            select: {
+                                                id: true,
+                                                name: true,
+                                                username: true,
+                                            },
+                                        },
+                                        readReceipts: {
+                                            where: { userId },
+                                        },
                                     },
                                 },
-                                readReceipts: {
-                                    where: {
-                                        userId: userId,
-                                    },
-                                },
-                            },
-                        },
-                        lastMessage: {
-                            include: {
-                                sender: {
-                                    select: {
-                                        id: true,
-                                        name: true,
-                                        username: true,
+                                lastMessage: {
+                                    include: {
+                                        sender: {
+                                            select: {
+                                                id: true,
+                                                name: true,
+                                                username: true,
+                                            },
+                                        },
                                     },
                                 },
                             },
                         },
                     },
-                },
+                    orderBy: {
+                        conversation: {
+                            createdAt: "asc",
+                        },
+                    },
+                });
+
+                const contacts = [];
+                const messages = {};
+
+                userConversations.forEach(({ conversation }) => {
+                    const otherParticipant = conversation.participants.find(
+                        (p) => p.user.id !== userId
+                    )?.user;
+
+                    contacts.push({
+                        id: otherParticipant?.id,
+                        name: otherParticipant?.username,
+                        online: !!otherParticipant?.onlineStatus,
+                        conversationId: conversation.id,
+                    });
+
+                    messages[conversation.id] = conversation.messages
+                        .map((message) => ({
+                            id: message.id,
+                            content: message.content,
+                            senderId: message.sender.id,
+                            time: new Date(
+                                message.createdAt
+                            ).toLocaleTimeString("en-US", {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                                timeZone: "Asia/Kolkata",
+                                day: "2-digit",
+                            }),
+                        }))
+                        .sort((a, b) => a.id - b.id);
+                });
+
+                contacts.sort((a, b) => {
+                    const lastMessageA =
+                        userConversations.find(
+                            (c) => c.conversation.id === a.id
+                        )?.conversation.lastMessage?.createdAt || 0;
+                    const lastMessageB =
+                        userConversations.find(
+                            (c) => c.conversation.id === b.id
+                        )?.conversation.lastMessage?.createdAt || 0;
+
+                    return new Date(lastMessageB) - new Date(lastMessageA);
+                });
+
+                return { contacts, messages };
             },
-            orderBy: {
-                conversation: {
-                    createdAt: "asc",
-                },
-            },
-        });
-
-        const contacts = [];
-        const messages = {};
-
-        userConversations.forEach(({ conversation }) => {
-            const otherParticipant = conversation.participants.find(
-                (p) => p.user.id !== userId
-            )?.user;
-
-            contacts.push({
-                id: otherParticipant?.id,
-                name: otherParticipant?.username,
-                online: !!otherParticipant?.onlineStatus,
-                conversationId: conversation.id,
-            });
-
-            messages[conversation.id] = conversation.messages
-                .map((message) => ({
-                    id: message.id,
-                    content: message.content,
-                    senderId: message.sender.id,
-                    time: new Date(message.createdAt).toLocaleTimeString(
-                        "en-US",
-                        {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                            timeZone: "Asia/Kolkata",
-                            day: "2-digit",
-                        }
-                    ),
-                }))
-                .sort((a, b) => a.id - b.id);
-        });
-
-        contacts.sort((a, b) => {
-            const lastMessageA =
-                userConversations.find((c) => c.conversation.id === a.id)
-                    ?.conversation.lastMessage?.createdAt || 0;
-            const lastMessageB =
-                userConversations.find((c) => c.conversation.id === b.id)
-                    ?.conversation.lastMessage?.createdAt || 0;
-
-            return new Date(lastMessageB) - new Date(lastMessageA);
-        });
+            300
+        );
 
         return {
             statusCode: 200,
-            message: "Recent chats retrieved successfully",
-            data: { contacts, messages },
+            message: cached
+                ? "Recent chats retrieved from cache"
+                : "Recent chats retrieved successfully",
+            data: chatData,
         };
     });
 }
