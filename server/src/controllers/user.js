@@ -313,6 +313,14 @@ async function manageFriendRequest(req, res) {
             const userIds = [requestAction.senderId, requestAction.receiverId];
             const roomName = generateRandomChars();
             const roomStatus = createRoomHandler(roomName, userIds);
+
+            await CacheInvalidator.invalidateByEvent(
+                INVALIDATION_EVENTS.RECENT_CHATS_UPDATED,
+                {
+                    userIds,
+                }
+            );
+
             return {
                 statusCode: 200,
                 message: "Friend request accepted",

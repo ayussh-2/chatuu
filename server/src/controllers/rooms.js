@@ -2,7 +2,11 @@ import prisma from "../config/prisma.js";
 import redisClient from "../config/redis.js";
 import giveError from "../utils/giveError.js";
 import { handleRequest } from "../utils/handleRequest.js";
-
+import redisController from "../utils/redis/redisController.js";
+import {
+    CacheInvalidator,
+    INVALIDATION_EVENTS,
+} from "../utils/redis/cacheInValidator.js";
 export async function createRoomHandler(name, userIds) {
     const existingConversation = await prisma.conversation.findFirst({
         where: {

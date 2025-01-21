@@ -22,6 +22,7 @@ const INVALIDATION_EVENTS = {
     USER_STATUS_CHANGED: "USER_STATUS_CHANGED",
     USER_LIST_UPDATED: "USER_LIST_UPDATED",
     USER_PROFILE_UPDATED: "USER_PROFILE_UPDATED",
+    RECENT_CHATS_UPDATED: "RECENT_CHATS_UPDATED",
 };
 
 class CacheInvalidator {
@@ -110,6 +111,12 @@ class CacheInvalidator {
                     CACHE_KEYS.USER_PROFILE(userId),
                     "users:*",
                 ]);
+            },
+
+            [INVALIDATION_EVENTS.RECENT_CHATS_UPDATED]: async ({ userIds }) => {
+                await this.invalidateMultiple(
+                    userIds.map((userId) => CACHE_KEYS.RECENT_CHATS(userId))
+                );
             },
         };
 
