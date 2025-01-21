@@ -7,6 +7,11 @@ export function MessageList({ userId }: { userId: number }) {
     const { messages, activeContactId } = useChatStore();
     const activeMessages =
         activeContactId !== null ? messages[activeContactId] || [] : [];
+
+    const sortedMessages = activeMessages.sort((a, b) => {
+        return a.id - b.id;
+    });
+
     const messagesEndRef = useRef<HTMLDivElement>(null);
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -15,7 +20,7 @@ export function MessageList({ userId }: { userId: number }) {
     return (
         <div className="flex-1 overflow-y-auto p-4">
             <div className="space-y-4">
-                {activeMessages.map((message) => {
+                {sortedMessages.map((message) => {
                     const isCurrentUser = message.senderId === userId;
                     return (
                         <motion.div

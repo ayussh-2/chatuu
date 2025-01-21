@@ -6,11 +6,14 @@ import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import useUser from "@/hooks/use-user";
 import useShowAtRoutes from "@/hooks/use-showAtRoutes";
+import { useChatStore } from "@/lib/chat-store";
 
 const MobileNavigation = () => {
     const pathname = usePathname();
     const router = useRouter();
     const user = useUser();
+    const { activeContactId } = useChatStore();
+    if (activeContactId) return null;
 
     if (!useShowAtRoutes()) return null;
 
@@ -62,7 +65,9 @@ const MobileNavigation = () => {
                                 <Link
                                     href={
                                         item.href === "/profile"
-                                            ? `/profile/${user?.userId}`
+                                            ? user?.userId
+                                                ? `/profile/${user.userId}`
+                                                : "#"
                                             : item.href
                                     }
                                     className={cn(

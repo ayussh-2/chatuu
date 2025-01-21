@@ -123,7 +123,7 @@ export default function Home() {
     }, [activeContactId]);
 
     return (
-        <div className="h-screen flex bg-background overflow-hidden">
+        <div className="h-[100dvh] flex bg-background overflow-hidden">
             <Loader isLoading={isLoading} />
             <Sidebar isOpen={isOpen} setIsOpen={setIsOpen} />
 

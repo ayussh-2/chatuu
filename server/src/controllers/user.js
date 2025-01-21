@@ -701,11 +701,12 @@ async function getRecentChats(req, res) {
                     recentChats.messages[conversationId] = [
                         ...buffered,
                         ...(recentChats.messages[conversationId] || []),
-                    ].sort(
-                        (a, b) =>
-                            new Date(getTimeFromFormat(a.time)) -
-                            new Date(getTimeFromFormat(b.time))
-                    );
+                    ];
+
+                    // recentChats.messages[conversationId] = [
+                    //     ...buffered,
+                    //     ...(recentChats.messages[conversationId] || []),
+                    // ].sort((a, b) => a.id - b.id);
                 }
             } catch (error) {
                 console.error(
