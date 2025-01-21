@@ -12,9 +12,6 @@ const MobileNavigation = () => {
     const pathname = usePathname();
     const router = useRouter();
     const user = useUser();
-    const { activeContactId } = useChatStore();
-    if (activeContactId) return null;
-
     if (!useShowAtRoutes()) return null;
 
     const isActive = (path: string) => pathname === path;
