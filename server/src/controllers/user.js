@@ -4,6 +4,10 @@ import prisma from "../config/prisma.js";
 import { handleRequest, generateRandomChars } from "../utils/utils.js";
 import { createRoomHandler } from "./rooms.js";
 import redisController from "../utils/redis/redisController.js";
+import {
+    CacheInvalidator,
+    INVALIDATION_EVENTS,
+} from "../utils/redis/cacheInValidator.js";
 
 config();
 
@@ -12,31 +16,41 @@ const CACHE_EXPIRATION = process.env.CACHE_EXPIRATION || 300;
 async function getUserProfile(req, res) {
     return handleRequest(res, async () => {
         const { userId } = req.body;
-        const user = await prisma.user.findUnique({
-            where: {
-                id: userId,
+        const cacheKey = `user_profile:${userId}`;
+        const { data: details, cached } = await redisController.getOrSet(
+            cacheKey,
+            async () => {
+                const user = await prisma.user.findUnique({
+                    where: {
+                        id: userId,
+                    },
+                });
+
+                if (!user) {
+                    return {
+                        statusCode: 404,
+                        message: "User not found",
+                        data: null,
+                    };
+                }
+
+                const details = {
+                    username: user.username,
+                    email: user.email,
+                    createdAt: user.createdAt,
+                    name: user.name,
+                    id: user.id,
+                };
+
+                return details;
             },
-        });
-
-        if (!user) {
-            return {
-                statusCode: 404,
-                message: "User not found",
-                data: null,
-            };
-        }
-
-        const details = {
-            username: user.username,
-            email: user.email,
-            createdAt: user.createdAt,
-            name: user.name,
-            id: user.id,
-        };
-
+            CACHE_EXPIRATION
+        );
         return {
             statusCode: 200,
-            message: "User found",
+            message: cached
+                ? "Profile retrieved from cache"
+                : "Profile retrieved",
             data: details,
         };
     });
@@ -45,36 +59,46 @@ async function getUserProfile(req, res) {
 async function getUsers(req, res) {
     return handleRequest(res, async () => {
         const { page = 1, limit = 0 } = req.query;
-        const users = await prisma.user.findMany({
-            select: {
-                username: true,
-                email: true,
-                id: true,
-                name: true,
-                createdAt: true,
-                messages: {
+        const cacheKey = `users:${page}:${limit}`;
+
+        const { data: users, cached } = await redisController.getOrSet(
+            cacheKey,
+            async () => {
+                const users = await prisma.user.findMany({
                     select: {
+                        username: true,
+                        email: true,
                         id: true,
+                        name: true,
+                        createdAt: true,
+                        messages: {
+                            select: {
+                                id: true,
+                            },
+                        },
+                        profilePicture: true,
+                        sentRequests: {
+                            select: {
+                                id: true,
+                            },
+                        },
+                        receivedRequests: {
+                            select: {
+                                id: true,
+                            },
+                        },
                     },
-                },
-                profilePicture: true,
-                sentRequests: {
-                    select: {
-                        id: true,
-                    },
-                },
-                receivedRequests: {
-                    select: {
-                        id: true,
-                    },
-                },
+                    skip: (page - 1) * limit,
+                });
+
+                return users;
             },
-            skip: (page - 1) * limit,
-        });
+            CACHE_EXPIRATION
+        );
 
         return {
             statusCode: 200,
-            message: "Users found",
+            message: cached ? "Users retrieved from cache" : "Users retrieved",
             data: users,
         };
     });
@@ -162,7 +186,10 @@ async function sendFriendRequest(req, res) {
                 }
             }
 
-            if (existingRequest.status === "REJECTED") {
+            if (
+                existingRequest.status === "REJECTED" ||
+                existingRequest.status === "CANCELED"
+            ) {
                 if (existingRequest.senderId === selfId) {
                     const friendRequest = await prisma.friendRequest.update({
                         where: { id: existingRequest.id },
@@ -170,40 +197,41 @@ async function sendFriendRequest(req, res) {
                             status: "PENDING",
                         },
                     });
-                    return {
-                        statusCode: 200,
-                        message: "Friend request resent",
-                        data: friendRequest,
-                    };
-                } else {
-                    return {
-                        statusCode: 400,
-                        message:
-                            "You cannot send a request. The other user must initiate.",
-                        data: existingRequest,
-                    };
-                }
-            }
 
-            if (existingRequest.status === "CANCELED") {
-                if (existingRequest.senderId === selfId) {
-                    const friendRequest = await prisma.friendRequest.update({
-                        where: { id: existingRequest.id },
-                        data: {
-                            status: "PENDING",
-                        },
-                    });
+                    await CacheInvalidator.invalidateByEvent(
+                        INVALIDATION_EVENTS.FRIEND_REQUEST_SENT,
+                        {
+                            senderId: selfId,
+                            receiverId: friendId,
+                        }
+                    );
+
                     return {
                         statusCode: 200,
                         message: "Friend request resent",
                         data: friendRequest,
                     };
                 } else {
+                    const friendRequest = await prisma.friendRequest.update({
+                        where: { id: existingRequest.id },
+                        data: {
+                            status: "PENDING",
+                            senderId: selfId,
+                            receiverId: friendId,
+                        },
+                    });
+
+                    await CacheInvalidator.invalidateByEvent(
+                        INVALIDATION_EVENTS.FRIEND_REQUEST_SENT,
+                        {
+                            senderId: selfId,
+                            receiverId: friendId,
+                        }
+                    );
                     return {
-                        statusCode: 400,
-                        message:
-                            "You cannot send a request. The other user must initiate.",
-                        data: existingRequest,
+                        statusCode: 200,
+                        message: "Friend request sent",
+                        data: friendRequest,
                     };
                 }
             }
@@ -216,6 +244,14 @@ async function sendFriendRequest(req, res) {
                 status: "PENDING",
             },
         });
+
+        await CacheInvalidator.invalidateByEvent(
+            INVALIDATION_EVENTS.FRIEND_REQUEST_SENT,
+            {
+                senderId: selfId,
+                receiverId: friendId,
+            }
+        );
 
         return {
             statusCode: 200,
@@ -264,6 +300,14 @@ async function manageFriendRequest(req, res) {
             where: { id: requestId },
             data: { status: action },
         });
+
+        await CacheInvalidator.invalidateByEvent(
+            INVALIDATION_EVENTS.FRIEND_REQUEST_RESPONDED,
+            {
+                senderId: requestAction.senderId,
+                receiverId: requestAction.receiverId,
+            }
+        );
 
         if (action === "ACCEPTED") {
             const userIds = [requestAction.senderId, requestAction.receiverId];
@@ -674,6 +718,14 @@ async function updateProfile(req, res) {
                 email,
             },
         });
+
+        await CacheInvalidator.invalidateByEvent(
+            INVALIDATION_EVENTS.USER_PROFILE_UPDATED,
+            {
+                userId,
+            }
+        );
+
         return {
             statusCode: 200,
             message: "Profile updated successfully",

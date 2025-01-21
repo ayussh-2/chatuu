@@ -4,6 +4,10 @@ import { config } from "dotenv";
 import prisma from "../config/prisma.js";
 import redisClient from "../config/redis.js";
 import { generateToken, handleRequest, decodeToken } from "../utils/utils.js";
+import {
+    CacheInvalidator,
+    INVALIDATION_EVENTS,
+} from "../utils/redis/cacheInValidator.js";
 
 config();
 
@@ -36,6 +40,13 @@ async function createUser(req, res) {
                 password: hashedPassword,
             },
         });
+
+        await CacheInvalidator.invalidateByEvent(
+            INVALIDATION_EVENTS.USER_LIST_UPDATED,
+            {
+                pattern: "users:*",
+            }
+        );
 
         return {
             statusCode: 201,

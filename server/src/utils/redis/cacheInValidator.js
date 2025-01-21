@@ -8,6 +8,8 @@ const CACHE_KEYS = {
     MESSAGES: (conversationId) => `messages:${conversationId}`,
     FRIEND_REQUESTS: (userId) => `friend_requests:${userId}`,
     USER_SETTINGS: (userId) => `user_settings:${userId}`,
+    USER_LIST: (page, limit) => `users:${page}:${limit}`,
+    USER_PROFILE: (userId) => `user_profile:${userId}`,
 };
 
 const INVALIDATION_EVENTS = {
@@ -18,6 +20,8 @@ const INVALIDATION_EVENTS = {
     FRIEND_REQUEST_RESPONDED: "FRIEND_REQUEST_RESPONDED",
     USER_UPDATED: "USER_UPDATED",
     USER_STATUS_CHANGED: "USER_STATUS_CHANGED",
+    USER_LIST_UPDATED: "USER_LIST_UPDATED",
+    USER_PROFILE_UPDATED: "USER_PROFILE_UPDATED",
 };
 
 class CacheInvalidator {
@@ -97,8 +101,15 @@ class CacheInvalidator {
                 ]);
             },
 
-            [INVALIDATION_EVENTS.NOTIFICATION_RECEIVED]: async ({ userId }) => {
-                await this.invalidate(CACHE_KEYS.NOTIFICATIONS(userId));
+            [INVALIDATION_EVENTS.USER_LIST_UPDATED]: async ({ pattern }) => {
+                await this.invalidatePattern(pattern);
+            },
+
+            [INVALIDATION_EVENTS.USER_PROFILE_UPDATED]: async ({ userId }) => {
+                await this.invalidateMultiple([
+                    CACHE_KEYS.USER_PROFILE(userId),
+                    "users:*",
+                ]);
             },
         };
 

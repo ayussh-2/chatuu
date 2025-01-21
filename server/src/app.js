@@ -10,7 +10,12 @@ import {
     jsonParser,
     sessionMiddleware,
 } from "./middleware/middlewares.js";
-import { authRoutes, roomRoutes, userRoutes } from "./routes/routes.js";
+import {
+    authRoutes,
+    roomRoutes,
+    userRoutes,
+    redisRoutes,
+} from "./routes/routes.js";
 
 //env config
 config();
@@ -40,6 +45,7 @@ app.get("/", (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/user", authenticateToken, userRoutes);
 app.use("/api/rooms", authenticateToken, roomRoutes);
+app.use("/api/redis", authenticateToken, redisRoutes);
 
 io.on("connection", (socket) => {
     console.log("A user connected " + socket.id);

@@ -1,5 +1,5 @@
 import authRoutes from "./auth.js";
 import userRoutes from "./user.js";
 import roomRoutes from "./rooms.js";
-
-export { authRoutes, userRoutes, roomRoutes };
+import redisRoutes from "./redis.js";
+export { authRoutes, userRoutes, roomRoutes, redisRoutes };
