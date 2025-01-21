@@ -55,6 +55,7 @@ export default function Home() {
         const roomIds = contacts.map(
             (contact: { conversationId: number }) => contact.conversationId
         );
+
         joinLatestRooms(roomIds);
     }
 

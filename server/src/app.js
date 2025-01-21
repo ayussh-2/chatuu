@@ -35,7 +35,8 @@ export const io = new Server(httpServer, {
 const chatHandler = new ChatHandler(io);
 
 // cron job to save msg buffers
-cron.schedule("*/5 * * * *", () => {
+cron.schedule("*/1 * * * *", () => {
+    // console.log("Saving all buffers to database");
     chatHandler.saveAllBuffers();
 });
 

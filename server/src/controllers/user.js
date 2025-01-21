@@ -1,7 +1,12 @@
 import { config } from "dotenv";
 
 import prisma from "../config/prisma.js";
-import { handleRequest, generateRandomChars } from "../utils/utils.js";
+import {
+    handleRequest,
+    generateRandomChars,
+    formatTime,
+    getTimeFromFormat,
+} from "../utils/utils.js";
 import { createRoomHandler } from "./rooms.js";
 import redisController from "../utils/redis/redisController.js";
 import {
@@ -578,7 +583,7 @@ async function getRecentChats(req, res) {
 
         if (!userId) {
             return {
-                statusCode: 400,
+                status: "error",
                 message: "Invalid request",
                 data: null,
             };
@@ -639,24 +644,34 @@ async function getRecentChats(req, res) {
                 },
             });
 
-            recentChats = userConversations.map(({ conversation }) => ({
-                id: conversation.id,
-                contacts: conversation.participants.map((p) => ({
-                    id: p.user.id,
-                    username: p.user.username,
-                    profilePicture: p.user.profilePicture,
-                })),
-                messages: conversation.messages.map((msg) => ({
+            const contacts = [];
+            const messages = {};
+
+            userConversations.forEach(({ conversation }) => {
+                conversation.participants.forEach((p) => {
+                    if (p.user.id !== userId) {
+                        contacts.push({
+                            id: p.user.id,
+                            name: p.user.username,
+                            online: false,
+                            conversationId: conversation.id,
+                        });
+                    }
+                });
+
+                const formattedMessages = conversation.messages.map((msg) => ({
                     id: msg.id,
                     content: msg.content,
                     senderId: msg.sender.id,
-                    time: msg.createdAt,
-                })),
-                lastMessage: conversation.lastMessage,
-            }));
+                    time: formatTime(msg.createdAt),
+                }));
 
-            // Only cache if we successfully created the array
-            if (Array.isArray(recentChats)) {
+                messages[conversation.id] = formattedMessages;
+            });
+
+            recentChats = { contacts, messages };
+
+            if (contacts.length > 0) {
                 await redisController.set(
                     cacheKey,
                     recentChats,
@@ -667,19 +682,9 @@ async function getRecentChats(req, res) {
             recentChats = cachedData;
         }
 
-        // Ensure recentChats is an array before proceeding
-        if (!Array.isArray(recentChats)) {
-            return {
-                statusCode: 500,
-                message: "Error retrieving recent chats",
-                data: [],
-            };
-        }
-
-        // Process buffer messages for each chat
-        for (const chat of recentChats) {
+        for (const conversationId in recentChats.messages) {
             try {
-                const bufferKey = `chat:buffer:${chat.id}`;
+                const bufferKey = `chat:buffer:${conversationId}`;
                 const bufferMessages = await redisController.get(bufferKey);
 
                 if (
@@ -690,25 +695,28 @@ async function getRecentChats(req, res) {
                         id: msg.tempId,
                         content: msg.content,
                         senderId: msg.senderId,
-                        time: msg.timestamp,
+                        time: formatTime(msg.timestamp),
                     }));
 
-                    chat.messages = [
+                    recentChats.messages[conversationId] = [
                         ...buffered,
-                        ...(chat.messages || []),
-                    ].sort((a, b) => new Date(a.time) - new Date(b.time));
+                        ...(recentChats.messages[conversationId] || []),
+                    ].sort(
+                        (a, b) =>
+                            new Date(getTimeFromFormat(a.time)) -
+                            new Date(getTimeFromFormat(b.time))
+                    );
                 }
             } catch (error) {
                 console.error(
-                    `Error processing buffer for chat ${chat.id}:`,
+                    `Error processing buffer for chat ${conversationId}:`,
                     error
                 );
-                chat.messages = chat.messages || [];
             }
         }
 
         return {
-            statusCode: 200,
+            status: "success",
             message: "Recent chats retrieved successfully",
             data: recentChats,
         };

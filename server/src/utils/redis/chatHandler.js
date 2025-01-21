@@ -19,7 +19,6 @@ class ChatHandler {
                     return;
                 }
                 socket.join(roomId);
-                console.log("User joined room " + roomId);
                 socket.emit("roomJoined", roomId);
             });
 
@@ -36,7 +35,7 @@ class ChatHandler {
             });
 
             socket.on("disconnect", () => {
-                console.log("User disconnected");
+                console.log("User disconnected " + socket.id);
             });
         });
     }
@@ -50,7 +49,6 @@ class ChatHandler {
                 content,
                 senderId,
                 conversationId,
-                timestamp: new Date(),
                 tempId: `msg_${Date.now()}_${Math.random()
                     .toString(36)
                     .substr(2, 9)}`,
@@ -110,6 +108,8 @@ class ChatHandler {
                     });
                 }
             });
+
+            // console.log("Buffer saved to database:", bufferKey);
 
             await RedisController.delete(bufferKey);
         } catch (error) {

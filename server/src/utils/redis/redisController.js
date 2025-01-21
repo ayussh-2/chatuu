@@ -96,6 +96,19 @@ class RedisController {
             return false;
         }
     }
+
+    async getKeys(pattern) {
+        try {
+            const keys = await redisClient.keys(pattern);
+            return keys;
+        } catch (error) {
+            console.error(
+                `Redis GET_KEYS Error for pattern ${pattern}:`,
+                error
+            );
+            return [];
+        }
+    }
 }
 
 export default RedisController.getInstance();
