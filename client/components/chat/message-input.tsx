@@ -32,20 +32,21 @@ export function MessageInput({
                 senderId: userId,
             });
 
-            const response = await makeRequest(
-                "POST",
-                "/rooms/sendmessage",
-                {
-                    content: message.trim(),
-                    conversationId: activeContactId,
-                    userId,
-                },
-                "Error sending message",
-                true,
-                false
-            );
+            // const response = await makeRequest(
+            //     "POST",
+            //     "/rooms/sendmessage",
+            //     {
+            //         content: message.trim(),
+            //         conversationId: activeContactId,
+            //         userId,
+            //     },
+            //     "Error sending message",
+            //     true,
+            //     false
+            // );
 
-            if (!response) return;
+            // if (!response) return;
+
             setMessage("");
         } catch (error) {
             console.error("Error sending message:", error);

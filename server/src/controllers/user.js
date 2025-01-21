@@ -585,119 +585,132 @@ async function getRecentChats(req, res) {
         }
 
         const cacheKey = `recent_chats:${userId}`;
+        const cachedData = await redisController.get(cacheKey);
 
-        const { data: chatData, cached } = await redisController.getOrSet(
-            cacheKey,
-            async () => {
-                const userConversations = await prisma.participant.findMany({
-                    where: { userId },
-                    select: {
-                        conversation: {
-                            include: {
-                                participants: {
-                                    include: {
-                                        user: {
-                                            select: {
-                                                id: true,
-                                                username: true,
-                                                profilePicture: true,
-                                            },
+        let recentChats = [];
+        if (!cachedData || !Array.isArray(cachedData)) {
+            const userConversations = await prisma.participant.findMany({
+                where: { userId },
+                select: {
+                    conversation: {
+                        include: {
+                            participants: {
+                                include: {
+                                    user: {
+                                        select: {
+                                            id: true,
+                                            username: true,
+                                            profilePicture: true,
                                         },
                                     },
                                 },
-                                messages: {
-                                    orderBy: { createdAt: "desc" },
-                                    take: 20,
-                                    include: {
-                                        sender: {
-                                            select: {
-                                                id: true,
-                                                name: true,
-                                                username: true,
-                                            },
-                                        },
-                                        readReceipts: {
-                                            where: { userId },
+                            },
+                            messages: {
+                                orderBy: { createdAt: "desc" },
+                                take: 20,
+                                include: {
+                                    sender: {
+                                        select: {
+                                            id: true,
+                                            name: true,
+                                            username: true,
                                         },
                                     },
                                 },
-                                lastMessage: {
-                                    include: {
-                                        sender: {
-                                            select: {
-                                                id: true,
-                                                name: true,
-                                                username: true,
-                                            },
+                            },
+                            lastMessage: {
+                                include: {
+                                    sender: {
+                                        select: {
+                                            id: true,
+                                            name: true,
+                                            username: true,
                                         },
                                     },
                                 },
                             },
                         },
                     },
-                    orderBy: {
-                        conversation: {
-                            createdAt: "asc",
-                        },
+                },
+                orderBy: {
+                    conversation: {
+                        createdAt: "asc",
                     },
-                });
+                },
+            });
 
-                const contacts = [];
-                const messages = {};
+            recentChats = userConversations.map(({ conversation }) => ({
+                id: conversation.id,
+                contacts: conversation.participants.map((p) => ({
+                    id: p.user.id,
+                    username: p.user.username,
+                    profilePicture: p.user.profilePicture,
+                })),
+                messages: conversation.messages.map((msg) => ({
+                    id: msg.id,
+                    content: msg.content,
+                    senderId: msg.sender.id,
+                    time: msg.createdAt,
+                })),
+                lastMessage: conversation.lastMessage,
+            }));
 
-                userConversations.forEach(({ conversation }) => {
-                    const otherParticipant = conversation.participants.find(
-                        (p) => p.user.id !== userId
-                    )?.user;
+            // Only cache if we successfully created the array
+            if (Array.isArray(recentChats)) {
+                await redisController.set(
+                    cacheKey,
+                    recentChats,
+                    CACHE_EXPIRATION
+                );
+            }
+        } else {
+            recentChats = cachedData;
+        }
 
-                    contacts.push({
-                        id: otherParticipant?.id,
-                        name: otherParticipant?.username,
-                        online: !!otherParticipant?.onlineStatus,
-                        conversationId: conversation.id,
-                    });
+        // Ensure recentChats is an array before proceeding
+        if (!Array.isArray(recentChats)) {
+            return {
+                statusCode: 500,
+                message: "Error retrieving recent chats",
+                data: [],
+            };
+        }
 
-                    messages[conversation.id] = conversation.messages
-                        .map((message) => ({
-                            id: message.id,
-                            content: message.content,
-                            senderId: message.sender.id,
-                            time: new Date(
-                                message.createdAt
-                            ).toLocaleTimeString("en-US", {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                                timeZone: "Asia/Kolkata",
-                                day: "2-digit",
-                            }),
-                        }))
-                        .sort((a, b) => a.id - b.id);
-                });
+        // Process buffer messages for each chat
+        for (const chat of recentChats) {
+            try {
+                const bufferKey = `chat:buffer:${chat.id}`;
+                const bufferMessages = await redisController.get(bufferKey);
 
-                contacts.sort((a, b) => {
-                    const lastMessageA =
-                        userConversations.find(
-                            (c) => c.conversation.id === a.id
-                        )?.conversation.lastMessage?.createdAt || 0;
-                    const lastMessageB =
-                        userConversations.find(
-                            (c) => c.conversation.id === b.id
-                        )?.conversation.lastMessage?.createdAt || 0;
+                if (
+                    Array.isArray(bufferMessages) &&
+                    bufferMessages.length > 0
+                ) {
+                    const buffered = bufferMessages.map((msg) => ({
+                        id: msg.tempId,
+                        content: msg.content,
+                        senderId: msg.senderId,
+                        time: msg.timestamp,
+                    }));
 
-                    return new Date(lastMessageB) - new Date(lastMessageA);
-                });
-
-                return { contacts, messages };
-            },
-            CACHE_EXPIRATION
-        );
+                    chat.messages = [
+                        ...buffered,
+                        ...(chat.messages || []),
+                    ].sort((a, b) => new Date(a.time) - new Date(b.time));
+                }
+            } catch (error) {
+                console.error(
+                    `Error processing buffer for chat ${chat.id}:`,
+                    error
+                );
+                chat.messages = chat.messages || [];
+            }
+        }
 
         return {
             statusCode: 200,
-            message: cached
-                ? "Recent chats retrieved from cache"
-                : "Recent chats retrieved successfully",
-            data: chatData,
+            message: "Recent chats retrieved successfully",
+            data: recentChats,
         };
     });
 }
