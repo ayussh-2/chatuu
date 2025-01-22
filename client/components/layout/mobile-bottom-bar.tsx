@@ -5,15 +5,11 @@ import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import useUser from "@/hooks/use-user";
-import useShowAtRoutes from "@/hooks/use-showAtRoutes";
 
 const MobileNavigation = () => {
     const pathname = usePathname();
     const router = useRouter();
     const user = useUser();
-
-    if (!useShowAtRoutes()) return null;
-
     const isActive = (path: string) => pathname === path;
 
     const handleLogout = () => {
@@ -62,7 +58,9 @@ const MobileNavigation = () => {
                                 <Link
                                     href={
                                         item.href === "/profile"
-                                            ? `/profile/${user?.userId}`
+                                            ? user?.userId
+                                                ? `/profile/${user.userId}`
+                                                : "#"
                                             : item.href
                                     }
                                     className={cn(

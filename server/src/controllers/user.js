@@ -1,39 +1,61 @@
 import { config } from "dotenv";
 
 import prisma from "../config/prisma.js";
-import { handleRequest, generateRandomChars } from "../utils/utils.js";
+import {
+    handleRequest,
+    generateRandomChars,
+    formatTime,
+    getTimeFromFormat,
+} from "../utils/utils.js";
 import { createRoomHandler } from "./rooms.js";
-import decodeToken from "../utils/decodeToken.js";
+import redisController from "../utils/redis/redisController.js";
+import {
+    CacheInvalidator,
+    INVALIDATION_EVENTS,
+} from "../utils/redis/cacheInValidator.js";
+
 config();
+
+const CACHE_EXPIRATION = process.env.CACHE_EXPIRATION || 300;
 
 async function getUserProfile(req, res) {
     return handleRequest(res, async () => {
         const { userId } = req.body;
-        const user = await prisma.user.findUnique({
-            where: {
-                id: userId,
+        const cacheKey = `user_profile:${userId}`;
+        const { data: details, cached } = await redisController.getOrSet(
+            cacheKey,
+            async () => {
+                const user = await prisma.user.findUnique({
+                    where: {
+                        id: userId,
+                    },
+                });
+
+                if (!user) {
+                    return {
+                        statusCode: 404,
+                        message: "User not found",
+                        data: null,
+                    };
+                }
+
+                const details = {
+                    username: user.username,
+                    email: user.email,
+                    createdAt: user.createdAt,
+                    name: user.name,
+                    id: user.id,
+                };
+
+                return details;
             },
-        });
-
-        if (!user) {
-            return {
-                statusCode: 404,
-                message: "User not found",
-                data: null,
-            };
-        }
-
-        const details = {
-            username: user.username,
-            email: user.email,
-            createdAt: user.createdAt,
-            name: user.name,
-            id: user.id,
-        };
-
+            CACHE_EXPIRATION
+        );
         return {
             statusCode: 200,
-            message: "User found",
+            message: cached
+                ? "Profile retrieved from cache"
+                : "Profile retrieved",
             data: details,
         };
     });
@@ -42,36 +64,46 @@ async function getUserProfile(req, res) {
 async function getUsers(req, res) {
     return handleRequest(res, async () => {
         const { page = 1, limit = 0 } = req.query;
-        const users = await prisma.user.findMany({
-            select: {
-                username: true,
-                email: true,
-                id: true,
-                name: true,
-                createdAt: true,
-                messages: {
+        const cacheKey = `users:${page}:${limit}`;
+
+        const { data: users, cached } = await redisController.getOrSet(
+            cacheKey,
+            async () => {
+                const users = await prisma.user.findMany({
                     select: {
+                        username: true,
+                        email: true,
                         id: true,
+                        name: true,
+                        createdAt: true,
+                        messages: {
+                            select: {
+                                id: true,
+                            },
+                        },
+                        profilePicture: true,
+                        sentRequests: {
+                            select: {
+                                id: true,
+                            },
+                        },
+                        receivedRequests: {
+                            select: {
+                                id: true,
+                            },
+                        },
                     },
-                },
-                profilePicture: true,
-                sentRequests: {
-                    select: {
-                        id: true,
-                    },
-                },
-                receivedRequests: {
-                    select: {
-                        id: true,
-                    },
-                },
+                    skip: (page - 1) * limit,
+                });
+
+                return users;
             },
-            skip: (page - 1) * limit,
-        });
+            CACHE_EXPIRATION
+        );
 
         return {
             statusCode: 200,
-            message: "Users found",
+            message: cached ? "Users retrieved from cache" : "Users retrieved",
             data: users,
         };
     });
@@ -159,7 +191,10 @@ async function sendFriendRequest(req, res) {
                 }
             }
 
-            if (existingRequest.status === "REJECTED") {
+            if (
+                existingRequest.status === "REJECTED" ||
+                existingRequest.status === "CANCELED"
+            ) {
                 if (existingRequest.senderId === selfId) {
                     const friendRequest = await prisma.friendRequest.update({
                         where: { id: existingRequest.id },
@@ -167,40 +202,41 @@ async function sendFriendRequest(req, res) {
                             status: "PENDING",
                         },
                     });
-                    return {
-                        statusCode: 200,
-                        message: "Friend request resent",
-                        data: friendRequest,
-                    };
-                } else {
-                    return {
-                        statusCode: 400,
-                        message:
-                            "You cannot send a request. The other user must initiate.",
-                        data: existingRequest,
-                    };
-                }
-            }
 
-            if (existingRequest.status === "CANCELED") {
-                if (existingRequest.senderId === selfId) {
-                    const friendRequest = await prisma.friendRequest.update({
-                        where: { id: existingRequest.id },
-                        data: {
-                            status: "PENDING",
-                        },
-                    });
+                    await CacheInvalidator.invalidateByEvent(
+                        INVALIDATION_EVENTS.FRIEND_REQUEST_SENT,
+                        {
+                            senderId: selfId,
+                            receiverId: friendId,
+                        }
+                    );
+
                     return {
                         statusCode: 200,
                         message: "Friend request resent",
                         data: friendRequest,
                     };
                 } else {
+                    const friendRequest = await prisma.friendRequest.update({
+                        where: { id: existingRequest.id },
+                        data: {
+                            status: "PENDING",
+                            senderId: selfId,
+                            receiverId: friendId,
+                        },
+                    });
+
+                    await CacheInvalidator.invalidateByEvent(
+                        INVALIDATION_EVENTS.FRIEND_REQUEST_SENT,
+                        {
+                            senderId: selfId,
+                            receiverId: friendId,
+                        }
+                    );
                     return {
-                        statusCode: 400,
-                        message:
-                            "You cannot send a request. The other user must initiate.",
-                        data: existingRequest,
+                        statusCode: 200,
+                        message: "Friend request sent",
+                        data: friendRequest,
                     };
                 }
             }
@@ -213,6 +249,14 @@ async function sendFriendRequest(req, res) {
                 status: "PENDING",
             },
         });
+
+        await CacheInvalidator.invalidateByEvent(
+            INVALIDATION_EVENTS.FRIEND_REQUEST_SENT,
+            {
+                senderId: selfId,
+                receiverId: friendId,
+            }
+        );
 
         return {
             statusCode: 200,
@@ -262,10 +306,26 @@ async function manageFriendRequest(req, res) {
             data: { status: action },
         });
 
+        await CacheInvalidator.invalidateByEvent(
+            INVALIDATION_EVENTS.FRIEND_REQUEST_RESPONDED,
+            {
+                senderId: requestAction.senderId,
+                receiverId: requestAction.receiverId,
+            }
+        );
+
         if (action === "ACCEPTED") {
             const userIds = [requestAction.senderId, requestAction.receiverId];
             const roomName = generateRandomChars();
             const roomStatus = createRoomHandler(roomName, userIds);
+
+            await CacheInvalidator.invalidateByEvent(
+                INVALIDATION_EVENTS.RECENT_CHATS_UPDATED,
+                {
+                    userIds,
+                }
+            );
+
             return {
                 statusCode: 200,
                 message: "Friend request accepted",
@@ -292,30 +352,43 @@ async function manageFriendRequest(req, res) {
 async function getFriendRequests(req, res) {
     return handleRequest(res, async () => {
         const { userId } = req.body;
-        const requests = await prisma.friendRequest.findMany({
-            where: {
-                receiverId: userId,
-                status: "PENDING",
-            },
-            include: {
-                sender: {
-                    select: {
-                        id: true,
-                        name: true,
-                        username: true,
-                        email: true,
-                        profilePicture: true,
+
+        const cacheKey = `friend_requests:${userId}`;
+
+        const { data: requests, cached } = await redisController.getOrSet(
+            cacheKey,
+            async () => {
+                const requests = await prisma.friendRequest.findMany({
+                    where: {
+                        receiverId: userId,
+                        status: "PENDING",
                     },
-                },
+                    include: {
+                        sender: {
+                            select: {
+                                id: true,
+                                name: true,
+                                username: true,
+                                email: true,
+                                profilePicture: true,
+                            },
+                        },
+                    },
+                    orderBy: {
+                        sentAt: "desc",
+                    },
+                });
+
+                return requests;
             },
-            orderBy: {
-                sentAt: "desc",
-            },
-        });
+            CACHE_EXPIRATION
+        );
 
         return {
             statusCode: 200,
-            message: "Friend requests found",
+            message: cached
+                ? "Requests retrieved from cache"
+                : "Requests retrieved successfully",
             data: requests,
         };
     });
@@ -324,55 +397,71 @@ async function getFriendRequests(req, res) {
 async function getFriends(req, res) {
     return handleRequest(res, async () => {
         const { userId } = req.body;
-        const friends = await prisma.friendRequest.findMany({
-            where: {
-                OR: [
-                    { senderId: userId, status: "ACCEPTED" },
-                    { receiverId: userId, status: "ACCEPTED" },
-                ],
-            },
-            select: {
-                id: true,
-                sender: {
-                    select: {
-                        id: true,
-                        name: true,
-                        email: true,
-                        username: true,
-                        profilePicture: true,
-                        createdAt: true,
-                    },
-                },
-                receiver: {
-                    select: {
-                        id: true,
-                        name: true,
-                        email: true,
-                        username: true,
-                        profilePicture: true,
-                        createdAt: true,
-                    },
-                },
-            },
-        });
 
-        const transformedFriends = friends.map((friend) => {
-            const friendData =
-                friend.sender.id === userId ? friend.receiver : friend.sender;
-            return {
-                requestId: friend.id,
-                userId: friendData.id,
-                name: friendData.name,
-                email: friendData.email,
-                username: friendData.username,
-                profilePicture: friendData.profilePicture,
-                createdAt: friendData.createdAt,
-            };
-        });
+        const cacheKey = `friends:${userId}`;
+
+        const { data: transformedFriends, cached } =
+            await redisController.getOrSet(
+                cacheKey,
+                async () => {
+                    const friends = await prisma.friendRequest.findMany({
+                        where: {
+                            OR: [
+                                { senderId: userId, status: "ACCEPTED" },
+                                { receiverId: userId, status: "ACCEPTED" },
+                            ],
+                        },
+                        select: {
+                            id: true,
+                            sender: {
+                                select: {
+                                    id: true,
+                                    name: true,
+                                    email: true,
+                                    username: true,
+                                    profilePicture: true,
+                                    createdAt: true,
+                                },
+                            },
+                            receiver: {
+                                select: {
+                                    id: true,
+                                    name: true,
+                                    email: true,
+                                    username: true,
+                                    profilePicture: true,
+                                    createdAt: true,
+                                },
+                            },
+                        },
+                    });
+
+                    const transformedFriends = friends.map((friend) => {
+                        const friendData =
+                            friend.sender.id === userId
+                                ? friend.receiver
+                                : friend.sender;
+                        return {
+                            requestId: friend.id,
+                            userId: friendData.id,
+                            name: friendData.name,
+                            email: friendData.email,
+                            username: friendData.username,
+                            profilePicture: friendData.profilePicture,
+                            createdAt: friendData.createdAt,
+                        };
+                    });
+
+                    return transformedFriends;
+                },
+                CACHE_EXPIRATION
+            );
 
         return {
             statusCode: 200,
-            message: "Friends found",
+            message: cached
+                ? "Friends retrieved from cache"
+                : "Friends retrieved successfully",
             data: transformedFriends,
         };
     });
@@ -381,95 +470,108 @@ async function getFriends(req, res) {
 async function getNonFriends(req, res) {
     return handleRequest(res, async () => {
         const { userId } = req.body;
-        const nonFriends = await prisma.user.findMany({
-            where: {
-                AND: [
-                    {
-                        id: {
-                            not: userId,
+
+        const cacheKey = `non_friends:${userId}`;
+        const { data: transformedNonFriends, cached } =
+            await redisController.getOrSet(
+                cacheKey,
+                async () => {
+                    const nonFriends = await prisma.user.findMany({
+                        where: {
+                            AND: [
+                                {
+                                    id: {
+                                        not: userId,
+                                    },
+                                },
+                                {
+                                    receivedRequests: {
+                                        none: {
+                                            AND: [
+                                                { senderId: userId },
+                                                { status: "ACCEPTED" },
+                                            ],
+                                        },
+                                    },
+                                },
+                                {
+                                    sentRequests: {
+                                        none: {
+                                            AND: [
+                                                { receiverId: userId },
+                                                { status: "ACCEPTED" },
+                                            ],
+                                        },
+                                    },
+                                },
+                            ],
                         },
-                    },
-                    {
-                        receivedRequests: {
-                            none: {
-                                AND: [
-                                    { senderId: userId },
-                                    { status: "ACCEPTED" },
-                                ],
+                        select: {
+                            id: true,
+                            name: true,
+                            username: true,
+                            email: true,
+                            profilePicture: true,
+                            createdAt: true,
+                            receivedRequests: {
+                                where: {
+                                    senderId: userId,
+                                },
+                                select: {
+                                    id: true,
+                                    status: true,
+                                },
+                            },
+                            sentRequests: {
+                                where: {
+                                    receiverId: userId,
+                                },
+                                select: {
+                                    id: true,
+                                    status: true,
+                                },
                             },
                         },
-                    },
-                    {
-                        sentRequests: {
-                            none: {
-                                AND: [
-                                    { receiverId: userId },
-                                    { status: "ACCEPTED" },
-                                ],
-                            },
-                        },
-                    },
-                ],
-            },
-            select: {
-                id: true,
-                name: true,
-                username: true,
-                email: true,
-                profilePicture: true,
-                createdAt: true,
-                // Get requests received from the current user
-                receivedRequests: {
-                    where: {
-                        senderId: userId,
-                    },
-                    select: {
-                        id: true,
-                        status: true,
-                    },
+                    });
+
+                    const transformedNonFriends = nonFriends.map((user) => {
+                        let requestStatus = "NONE";
+                        let requestId = null;
+
+                        // Check received requests (requests from current user)
+                        if (user.receivedRequests.length > 0) {
+                            requestStatus = user.receivedRequests[0].status;
+                            requestId = user.receivedRequests[0].id;
+                        }
+                        // Check sent requests (requests to current user)
+                        else if (user.sentRequests.length > 0) {
+                            requestStatus = user.sentRequests[0].status;
+                            requestId = user.sentRequests[0].id;
+                        }
+
+                        // Remove the requests arrays and add status and id fields
+                        const {
+                            receivedRequests,
+                            sentRequests,
+                            ...userWithoutRequests
+                        } = user;
+                        return {
+                            ...userWithoutRequests,
+                            requestStatus,
+                            requestId,
+                        };
+                    });
+
+                    return transformedNonFriends;
                 },
-                // Get requests sent to the current user
-                sentRequests: {
-                    where: {
-                        receiverId: userId,
-                    },
-                    select: {
-                        id: true,
-                        status: true,
-                    },
-                },
-            },
-        });
-
-        // Transform the data to include request status and ID when relevant
-        const transformedNonFriends = nonFriends.map((user) => {
-            let requestStatus = "NONE";
-            let requestId = null;
-
-            // Check received requests (requests from current user)
-            if (user.receivedRequests.length > 0) {
-                requestStatus = user.receivedRequests[0].status;
-                requestId = user.receivedRequests[0].id;
-            }
-            // Check sent requests (requests to current user)
-            else if (user.sentRequests.length > 0) {
-                requestStatus = user.sentRequests[0].status;
-                requestId = user.sentRequests[0].id;
-            }
-
-            // Remove the requests arrays and add status and id fields
-            const { receivedRequests, sentRequests, ...userWithoutRequests } =
-                user;
-            return {
-                ...userWithoutRequests,
-                requestStatus,
-                requestId,
-            };
-        });
+                CACHE_EXPIRATION
+            );
 
         return {
             statusCode: 200,
-            message: "Non friends found",
+            message: cached
+                ? "Non-friends retrieved from cache"
+                : "Non-friends retrieved successfully",
             data: transformedNonFriends,
         };
     });
@@ -481,119 +583,143 @@ async function getRecentChats(req, res) {
 
         if (!userId) {
             return {
-                statusCode: 400,
+                status: "error",
                 message: "Invalid request",
                 data: null,
             };
         }
 
-        const userConversations = await prisma.participant.findMany({
-            where: {
-                userId: userId,
-            },
-            select: {
-                conversation: {
-                    include: {
-                        participants: {
-                            include: {
-                                user: {
-                                    select: {
-                                        id: true,
-                                        username: true,
-                                        profilePicture: true,
+        const cacheKey = `recent_chats:${userId}`;
+        const cachedData = await redisController.get(cacheKey);
+
+        let recentChats = [];
+        if (!cachedData || !Array.isArray(cachedData)) {
+            const userConversations = await prisma.participant.findMany({
+                where: { userId },
+                select: {
+                    conversation: {
+                        include: {
+                            participants: {
+                                include: {
+                                    user: {
+                                        select: {
+                                            id: true,
+                                            username: true,
+                                            profilePicture: true,
+                                        },
                                     },
                                 },
                             },
-                        },
-                        messages: {
-                            orderBy: {
-                                createdAt: "desc",
-                            },
-                            take: 20,
-                            include: {
-                                sender: {
-                                    select: {
-                                        id: true,
-                                        name: true,
-                                        username: true,
-                                    },
-                                },
-                                readReceipts: {
-                                    where: {
-                                        userId: userId,
+                            messages: {
+                                orderBy: { createdAt: "asc" },
+                                take: 20,
+                                include: {
+                                    sender: {
+                                        select: {
+                                            id: true,
+                                            name: true,
+                                            username: true,
+                                        },
                                     },
                                 },
                             },
-                        },
-                        lastMessage: {
-                            include: {
-                                sender: {
-                                    select: {
-                                        id: true,
-                                        name: true,
-                                        username: true,
+                            lastMessage: {
+                                include: {
+                                    sender: {
+                                        select: {
+                                            id: true,
+                                            name: true,
+                                            username: true,
+                                        },
                                     },
                                 },
                             },
                         },
                     },
                 },
-            },
-            orderBy: {
-                conversation: {
-                    createdAt: "asc",
+                orderBy: {
+                    conversation: {
+                        createdAt: "asc",
+                    },
                 },
-            },
-        });
-
-        const contacts = [];
-        const messages = {};
-
-        userConversations.forEach(({ conversation }) => {
-            const otherParticipant = conversation.participants.find(
-                (p) => p.user.id !== userId
-            )?.user;
-
-            contacts.push({
-                id: otherParticipant?.id,
-                name: otherParticipant?.username,
-                online: !!otherParticipant?.onlineStatus,
-                conversationId: conversation.id,
             });
 
-            messages[conversation.id] = conversation.messages
-                .map((message) => ({
-                    id: message.id,
-                    content: message.content,
-                    senderId: message.sender.id,
-                    time: new Date(message.createdAt).toLocaleTimeString(
-                        "en-US",
-                        {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                            timeZone: "Asia/Kolkata",
-                            day: "2-digit",
-                        }
-                    ),
-                }))
-                .sort((a, b) => a.id - b.id);
-        });
+            const contacts = [];
+            const messages = {};
 
-        contacts.sort((a, b) => {
-            const lastMessageA =
-                userConversations.find((c) => c.conversation.id === a.id)
-                    ?.conversation.lastMessage?.createdAt || 0;
-            const lastMessageB =
-                userConversations.find((c) => c.conversation.id === b.id)
-                    ?.conversation.lastMessage?.createdAt || 0;
+            userConversations.forEach(({ conversation }) => {
+                conversation.participants.forEach((p) => {
+                    if (p.user.id !== userId) {
+                        contacts.push({
+                            id: p.user.id,
+                            name: p.user.username,
+                            online: false,
+                            conversationId: conversation.id,
+                        });
+                    }
+                });
 
-            return new Date(lastMessageB) - new Date(lastMessageA);
-        });
+                const formattedMessages = conversation.messages.map((msg) => ({
+                    id: msg.id,
+                    content: msg.content,
+                    senderId: msg.sender.id,
+                    time: formatTime(msg.createdAt),
+                }));
+
+                messages[conversation.id] = formattedMessages;
+            });
+
+            recentChats = { contacts, messages };
+
+            if (contacts.length > 0) {
+                await redisController.set(
+                    cacheKey,
+                    recentChats,
+                    CACHE_EXPIRATION
+                );
+            }
+        } else {
+            recentChats = cachedData;
+        }
+
+        for (const conversationId in recentChats.messages) {
+            try {
+                const bufferKey = `chat:buffer:${conversationId}`;
+                const bufferMessages = await redisController.get(bufferKey);
+
+                if (
+                    Array.isArray(bufferMessages) &&
+                    bufferMessages.length > 0
+                ) {
+                    const buffered = bufferMessages
+                        .sort(
+                            (a, b) =>
+                                new Date(a.timestamp) - new Date(b.timestamp)
+                        )
+                        .map((msg) => ({
+                            id: msg.tempId,
+                            content: msg.content,
+                            senderId: msg.senderId,
+                            time: formatTime(msg.timestamp),
+                        }));
+
+                    recentChats.messages[conversationId] = [
+                        ...(recentChats.messages[conversationId] || []),
+                        ...buffered,
+                    ];
+                }
+            } catch (error) {
+                console.error(
+                    `Error processing buffer for chat ${conversationId}:`,
+                    error
+                );
+            }
+        }
 
         return {
-            statusCode: 200,
+            status: "success",
             message: "Recent chats retrieved successfully",
-            data: { contacts, messages },
+            data: recentChats,
         };
     });
 }
@@ -622,6 +748,14 @@ async function updateProfile(req, res) {
                 email,
             },
         });
+
+        await CacheInvalidator.invalidateByEvent(
+            INVALIDATION_EVENTS.USER_PROFILE_UPDATED,
+            {
+                userId,
+            }
+        );
+
         return {
             statusCode: 200,
             message: "Profile updated successfully",

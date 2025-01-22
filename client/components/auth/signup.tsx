@@ -10,6 +10,7 @@ import { handleSetLoginCookies } from "@/utils/actions/authHandler";
 import LoadingButton from "../ui/loading-button";
 import { useForm } from "@/hooks/useForm";
 import { useApi } from "@/hooks/use-Api";
+import GoogleLogin from "./googleLogin";
 
 export default function SignupForm({ toggleLogin }: SignupFormProps) {
     const router = useRouter();
@@ -94,7 +95,7 @@ export default function SignupForm({ toggleLogin }: SignupFormProps) {
                 </Button>
             </div>
             <hr />
-            {/* <GoogleLogin /> */}
+            <GoogleLogin />
         </motion.div>
     );
 }

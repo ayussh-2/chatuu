@@ -2,7 +2,7 @@ import { config } from "dotenv";
 import express from "express";
 import { createServer } from "http";
 import { Server } from "socket.io";
-
+import cron from "node-cron";
 import {
     authenticateToken,
     cors,
@@ -10,7 +10,14 @@ import {
     jsonParser,
     sessionMiddleware,
 } from "./middleware/middlewares.js";
-import { authRoutes, roomRoutes, userRoutes } from "./routes/routes.js";
+import {
+    authRoutes,
+    roomRoutes,
+    userRoutes,
+    redisRoutes,
+} from "./routes/routes.js";
+
+import ChatHandler from "./utils/redis/chatHandler.js";
 
 //env config
 config();
@@ -23,6 +30,14 @@ export const io = new Server(httpServer, {
         methods: ["GET", "POST"],
         credentials: true,
     },
+});
+
+const chatHandler = new ChatHandler(io);
+
+// cron job to save msg buffers
+cron.schedule("*/5 * * * *", () => {
+    // console.log("Saving all buffers to database");
+    chatHandler.saveAllBuffers();
 });
 
 //middlewares
@@ -40,31 +55,6 @@ app.get("/", (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/user", authenticateToken, userRoutes);
 app.use("/api/rooms", authenticateToken, roomRoutes);
-
-io.on("connection", (socket) => {
-    console.log("A user connected " + socket.id);
-
-    socket.on("joinRoom", (roomId) => {
-        if (socket.rooms.has(roomId)) {
-            socket.emit("error", "Already joined this room");
-            return;
-        }
-        socket.join(roomId);
-        console.log("User joined room " + roomId);
-        socket.emit("roomJoined", roomId);
-    });
-
-    socket.on("leaveRoom", (roomId) => {
-        socket.leave(roomId);
-    });
-
-    socket.on("sendMessage", ({ roomId, message, senderId }) => {
-        io.to(roomId).emit("message", { senderId, message, roomId });
-    });
-
-    socket.on("disconnect", () => {
-        console.log("User disconnected");
-    });
-});
+app.use("/api/redis", authenticateToken, redisRoutes);
 
 export default httpServer;

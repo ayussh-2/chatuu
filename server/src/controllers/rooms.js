@@ -161,16 +161,6 @@ async function sendMessage(req, res) {
             data: { lastMessageId: message.id },
         });
 
-        const conversation = await prisma.conversation.findUnique({
-            where: { id: conversationId },
-            include: { participants: true, lastMessage: true },
-        });
-
-        await redisClient.set(
-            `conversation:${conversationId}`,
-            JSON.stringify(conversation)
-        );
-
         res.status(200).json({
             message: "Message sent successfully",
             status: "success",
