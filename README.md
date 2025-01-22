@@ -12,11 +12,11 @@ Chatuu is a sleek and modern chat application designed for seamless communicatio
 -   🌙 **Dark Mode Support**: Enjoy chatting in dark mode.
 -   ✅ **Form Validation**: Powered by `react-hook-form` and `zod`.
 -   ⚡ **Real-time Updates**: Instant messaging with `socket.io-client`.
--   🎨 **Interactive UI Components**: Built with `@radix-ui` for smooth user interactions.
+-   🎨 **Interactive UI Components**: Built with `@shadcn` for smooth user interactions.
 
 ### Backend
 
--   🔒 **Authentication**: Google OAuth 2.0 for secure sign-ins currently not working :( .
+-   🔒 **Authentication**: Google OAuth 2.0 for secure sign-ins.
 -   🗄️ **Database Management**: PostgreSQL handled efficiently using Prisma.
 -   ⚡ **Real-time Communication**: Real-time chat powered by `socket.io`.
 -   🧰 **Redis Integration**: Optimized caching with Redis.
