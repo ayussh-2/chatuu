@@ -2,7 +2,6 @@ import bcrypt from "bcryptjs";
 import { config } from "dotenv";
 
 import prisma from "../config/prisma.js";
-import redisClient from "../config/redis.js";
 import { generateToken, handleRequest, decodeToken } from "../utils/utils.js";
 import {
     CacheInvalidator,
@@ -91,14 +90,6 @@ async function loginUser(req, res) {
         }
 
         const token = generateToken(user);
-        (await redisClient).set(
-            token,
-            JSON.stringify({
-                email: user.email,
-                isOnline: true,
-                lastSeen: new Date(),
-            })
-        );
 
         return {
             statusCode: 200,
@@ -115,26 +106,25 @@ async function loginUser(req, res) {
     });
 }
 
-async function loginGoogleUser(email, res) {
-    return handleRequest(res, async () => {
-        const user = await prisma.user.findUnique({
-            where: {
-                email: email,
-            },
-        });
-        if (!user) {
-            return {
-                statusCode: 401,
-                message: "User Not Found",
-                data: null,
-            };
-        }
-        const token = generateToken(user);
-        return {
-            redirect:
-                process.env.CLIENT_URL + "/api/googleLogin?token=" + token,
-        };
+async function processGoogleLogin(email) {
+    const user = await prisma.user.findUnique({
+        where: {
+            email: email,
+        },
     });
+
+    if (!user) {
+        return {
+            statusCode: 401,
+            message: "User Not Found",
+            data: null,
+        };
+    }
+
+    const token = generateToken(user);
+    return {
+        redirect: process.env.CLIENT_URL + "/api/googleLogin?token=" + token,
+    };
 }
 
 async function googleCallback(req, res) {
@@ -165,10 +155,9 @@ async function googleCallback(req, res) {
                         token,
                 };
             }
-        } else {
-            const userLogin = await loginGoogleUser(email, res);
-            return userLogin;
         }
+
+        return await processGoogleLogin(email);
     });
 }
 
@@ -233,11 +222,24 @@ async function getProfileFromToken(req, res) {
 
         const userData = await prisma.user.findUnique({
             where: { id: user.id },
+            select: {
+                id: true,
+                name: true,
+                username: true,
+                email: true,
+                profilePicture: true,
+            },
         });
         return {
             statusCode: 200,
             message: "User found",
-            data: userData,
+            data: {
+                userId: userData.id,
+                name: userData.name,
+                username: userData.username,
+                email: userData.email,
+                profilePicture: userData.profilePicture,
+            },
         };
     });
 }

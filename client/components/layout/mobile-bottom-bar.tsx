@@ -5,15 +5,11 @@ import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import useUser from "@/hooks/use-user";
-import useShowAtRoutes from "@/hooks/use-showAtRoutes";
-import { useChatStore } from "@/lib/chat-store";
 
 const MobileNavigation = () => {
     const pathname = usePathname();
     const router = useRouter();
     const user = useUser();
-    if (!useShowAtRoutes()) return null;
-
     const isActive = (path: string) => pathname === path;
 
     const handleLogout = () => {

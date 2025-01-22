@@ -8,7 +8,8 @@ export default async function middleware(req: NextRequest) {
     const cookie = cookies().get("chatuu-token")?.value;
     const user = cookies().get("chatuu-user")?.value;
 
-    const userStatus = cookie && user ? true : false;
+    const userStatus =
+        cookie && user && JSON.parse(user)?.userId ? true : false;
 
     const isProtectedRoute = protectedRoutes.includes(req.nextUrl.pathname);
     const isPublicRoute = publicRoutes.includes(req.nextUrl.pathname);

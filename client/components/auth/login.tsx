@@ -12,6 +12,7 @@ import { Input } from "../ui/input";
 import LoadingButton from "../ui/loading-button";
 import { useApi } from "@/hooks/use-Api";
 import { handleSetLoginCookies } from "@/utils/actions/authHandler";
+import GoogleLogin from "./googleLogin";
 
 export default function LoginForm({ toggleLogin }: LoginFormProps) {
     const router = useRouter();
@@ -98,7 +99,7 @@ export default function LoginForm({ toggleLogin }: LoginFormProps) {
                 </Button>
             </div>
             <hr />
-            {/* <GoogleLogin /> */}
+            <GoogleLogin />
         </motion.div>
     );
 }
