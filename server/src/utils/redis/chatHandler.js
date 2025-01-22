@@ -49,6 +49,7 @@ class ChatHandler {
                 content,
                 senderId,
                 conversationId,
+                timestamp: new Date(),
                 tempId: `msg_${Date.now()}_${Math.random()
                     .toString(36)
                     .substr(2, 9)}`,

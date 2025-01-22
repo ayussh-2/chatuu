@@ -611,7 +611,7 @@ async function getRecentChats(req, res) {
                                 },
                             },
                             messages: {
-                                orderBy: { createdAt: "desc" },
+                                orderBy: { createdAt: "asc" },
                                 take: 20,
                                 include: {
                                     sender: {
@@ -691,22 +691,22 @@ async function getRecentChats(req, res) {
                     Array.isArray(bufferMessages) &&
                     bufferMessages.length > 0
                 ) {
-                    const buffered = bufferMessages.map((msg) => ({
-                        id: msg.tempId,
-                        content: msg.content,
-                        senderId: msg.senderId,
-                        time: formatTime(msg.timestamp),
-                    }));
+                    const buffered = bufferMessages
+                        .sort(
+                            (a, b) =>
+                                new Date(a.timestamp) - new Date(b.timestamp)
+                        )
+                        .map((msg) => ({
+                            id: msg.tempId,
+                            content: msg.content,
+                            senderId: msg.senderId,
+                            time: formatTime(msg.timestamp),
+                        }));
 
                     recentChats.messages[conversationId] = [
-                        ...buffered,
                         ...(recentChats.messages[conversationId] || []),
+                        ...buffered,
                     ];
-
-                    // recentChats.messages[conversationId] = [
-                    //     ...buffered,
-                    //     ...(recentChats.messages[conversationId] || []),
-                    // ].sort((a, b) => a.id - b.id);
                 }
             } catch (error) {
                 console.error(
