@@ -32,6 +32,8 @@ const PWAInstallModal: React.FC = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     const installState = useMemo(() => {
+        if (typeof window === "undefined") return;
+
         const isStandalone =
             window.matchMedia("(display-mode: standalone)").matches ||
             (window.navigator as any).standalone ||
@@ -97,9 +99,9 @@ const PWAInstallModal: React.FC = () => {
         }
     };
 
-    if (installState.isStandalone || !deferredPrompt) return null;
+    if (installState?.isStandalone || !deferredPrompt) return null;
 
-    if (installState.isIOS && installState.isSafari) {
+    if (installState?.isIOS && installState?.isSafari) {
         return (
             <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
                 <DialogContent>
@@ -113,9 +115,10 @@ const PWAInstallModal: React.FC = () => {
                             <ol className="mt-2 ml-4 space-y-1 list-decimal">
                                 <li>Tap the Share button in Safari</li>
                                 <li>
-                                    Scroll down and tap "Add to Home Screen"
+                                    Scroll down and tap &apos;Add to Home
+                                    Screen&apos;
                                 </li>
-                                <li>Tap "Add" to confirm</li>
+                                <li>Tap &apos;Add&apos; to confirm</li>
                             </ol>
                         </DialogDescription>
                     </DialogHeader>
@@ -147,7 +150,7 @@ const PWAInstallModal: React.FC = () => {
 
                 <p className="text-sm text-gray-600">
                     Install this application on your device for quick and easy
-                    access - it won't take up much space!
+                    access - it won&apos;t take up much space!
                 </p>
 
                 <div className="flex justify-end gap-2">
