@@ -10,6 +10,7 @@ const CACHE_KEYS = {
     USER_SETTINGS: (userId) => `user_settings:${userId}`,
     USER_LIST: (page, limit) => `users:${page}:${limit}`,
     USER_PROFILE: (userId) => `user_profile:${userId}`,
+    FRIENDS: (userId) => `friends:${userId}`,
 };
 
 const INVALIDATION_EVENTS = {
@@ -74,6 +75,8 @@ class CacheInvalidator {
                     CACHE_KEYS.NON_FRIENDS(receiverId),
                     CACHE_KEYS.FRIEND_REQUESTS(senderId),
                     CACHE_KEYS.FRIEND_REQUESTS(receiverId),
+                    CACHE_KEYS.FRIENDS(senderId),
+                    CACHE_KEYS.FRIENDS(receiverId),
                 ]);
             },
 
