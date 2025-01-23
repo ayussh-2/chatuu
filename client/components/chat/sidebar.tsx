@@ -23,7 +23,7 @@ export function Sidebar({
                     ${isOpen ? "w-80" : "w-16"} 
                     border-r border-border bg-card/50 backdrop-blur-xl flex flex-col`}
                 style={{
-                    zIndex: 1000,
+                    zIndex: 10,
                 }}
             >
                 <Button

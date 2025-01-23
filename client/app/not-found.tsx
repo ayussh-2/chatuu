@@ -14,7 +14,7 @@ const NotFound = () => {
                 <div className="space-y-2">
                     <h2 className="text-2xl font-semibold">Page not found</h2>
                     <p className="text-muted-foreground">
-                        We couldn&apos;find the page you&apos; looking for.
+                        We couldn&apos;t find the page you&apos;re looking for.
                     </p>
                 </div>
 
