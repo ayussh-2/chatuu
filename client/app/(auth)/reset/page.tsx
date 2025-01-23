@@ -16,22 +16,32 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useApi } from "@/hooks/use-Api";
+import useUser from "@/hooks/use-user";
+import { useRouter } from "next/navigation";
 
 export default function ResetPasswordPage() {
-    const [userDetails, setUserDetails] = useState({
-        email: "",
-        password: "",
-    });
+    const user = useUser();
+    const [password, setPassword] = useState("");
     const { makeRequest, isLoading } = useApi();
+    const router = useRouter();
 
     const handleSubmit = async (e: React.FormEvent) => {
+        if (!user) return;
+        const userDetails = {
+            email: user.email,
+            password,
+        };
         e.preventDefault();
-        await makeRequest(
+        const resp = await makeRequest(
             "POST",
             "/auth/reset",
             userDetails,
             "Some error occoured while resetting password"
         );
+
+        if (resp?.status === "success") {
+            router.push("/chats");
+        }
     };
 
     return (
@@ -42,12 +52,12 @@ export default function ResetPasswordPage() {
                         Reset Password
                     </CardTitle>
                     <CardDescription className="text-center">
-                        Enter your email and new password below
+                        Enter your new password below
                     </CardDescription>
                 </CardHeader>
                 <form onSubmit={handleSubmit}>
                     <CardContent className="space-y-4">
-                        <div className="space-y-2">
+                        {/* <div className="space-y-2">
                             <Label htmlFor="email">Email</Label>
                             <div className="relative">
                                 <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
@@ -66,7 +76,7 @@ export default function ResetPasswordPage() {
                                     required
                                 />
                             </div>
-                        </div>
+                        </div> */}
                         <div className="space-y-2">
                             <Label htmlFor="password">New Password</Label>
                             <div className="relative">
@@ -76,12 +86,9 @@ export default function ResetPasswordPage() {
                                     type="password"
                                     placeholder="Enter your new password"
                                     className="pl-10"
-                                    value={userDetails.password}
+                                    value={password}
                                     onChange={(e) =>
-                                        setUserDetails((prev) => ({
-                                            ...prev,
-                                            password: e.target.value,
-                                        }))
+                                        setPassword(e.target.value)
                                     }
                                     required
                                 />
