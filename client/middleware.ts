@@ -1,7 +1,7 @@
 import { NextResponse, NextRequest } from "next/server";
 import { cookies } from "next/headers";
 
-const protectedRoutes = ["/chats", "/logout", "/friends"];
+const protectedRoutes = ["/chats", "/logout", "/friends", "/reset"];
 const publicRoutes = ["/"];
 
 export default async function middleware(req: NextRequest) {
@@ -26,5 +26,5 @@ export default async function middleware(req: NextRequest) {
 }
 
 export const config = {
-    matcher: ["/chats", "/", "/logout", "/friends"],
+    matcher: ["/chats", "/", "/logout", "/friends", "/reset"],
 };

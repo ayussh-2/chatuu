@@ -37,9 +37,9 @@ export function ChatHeader() {
                     <h2 className="text-base font-semibold font-syne capitalize">
                         {activeContact?.name}
                     </h2>
-                    <p className="text-xs text-muted-foreground font-plusJakarta">
+                    {/* <p className="text-xs text-muted-foreground font-plusJakarta">
                         {activeContact?.online ? "Online" : "Offline"}
-                    </p>
+                    </p> */}
                 </div>
             </div>
         </motion.div>

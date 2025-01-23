@@ -102,13 +102,13 @@ export function FriendCard({ friend, loggedInUser }: FriendCardProps) {
                                 View Profile
                             </DropdownMenuItem>
                         </Link>
-                        <DropdownMenuItem
+                        {/* <DropdownMenuItem
                             className="text-destructive hover:cursor-pointer"
                             onClick={unfriend}
                             disabled={isLoading}
                         >
                             Unfriend
-                        </DropdownMenuItem>
+                        </DropdownMenuItem> */}
                     </DropdownMenuContent>
                 </DropdownMenu>
             </div>

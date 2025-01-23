@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import SignupForm from "@/components/auth/signup";
 import LoginForm from "@/components/auth/login";
 import { TextGenerateEffect } from "@/components/ui/text-generate-effect";
+import PWAInstallModal from "@/components/pwa/InstallPrompt";
 
 export default function Home() {
     const [showForms, setShowForms] = useState(false);
@@ -21,6 +22,8 @@ export default function Home() {
 
     return (
         <div>
+            <PWAInstallModal />
+
             <div className="grid min-h-screen place-items-center">
                 <AnimatePresence mode="wait">
                     {showForms ? (
