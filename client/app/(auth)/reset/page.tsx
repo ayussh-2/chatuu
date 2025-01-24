@@ -20,15 +20,12 @@ import useUser from "@/hooks/use-user";
 import { useRouter } from "next/navigation";
 
 export default function ResetPasswordPage() {
-    const user = useUser();
     const [password, setPassword] = useState("");
     const { makeRequest, isLoading } = useApi();
     const router = useRouter();
 
     const handleSubmit = async (e: React.FormEvent) => {
-        if (!user) return;
         const userDetails = {
-            email: user.email,
             password,
         };
         e.preventDefault();
@@ -36,7 +33,9 @@ export default function ResetPasswordPage() {
             "POST",
             "/auth/reset",
             userDetails,
-            "Some error occoured while resetting password"
+            "Some error occoured while resetting password",
+            true,
+            true
         );
 
         if (resp?.status === "success") {

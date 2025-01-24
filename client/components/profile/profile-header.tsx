@@ -37,7 +37,6 @@ export function ProfileHeader({ user }: { user: User }) {
             "PATCH",
             "/user/profile",
             {
-                userId: user.id,
                 name,
                 username,
                 email,

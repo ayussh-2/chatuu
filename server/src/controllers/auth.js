@@ -163,7 +163,20 @@ async function googleCallback(req, res) {
 
 async function resetPassword(req, res) {
     handleRequest(res, async () => {
-        const { email, password } = req.body;
+        const { password } = req.body;
+
+        const token = req.headers.authorization.split(" ")[1];
+        if (!token) {
+            return {
+                statusCode: 400,
+                message: "Invalid token",
+                data: null,
+            };
+        }
+
+        const userToken = decodeToken(token);
+        const email = userToken.email;
+
         const user = await prisma.user.findUnique({
             where: {
                 email: email,

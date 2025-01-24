@@ -20,7 +20,7 @@ export function MessageInput({
     userId,
 }: MessageInputProps) {
     const [message, setMessage] = useState("");
-    const { isLoading, makeRequest } = useApi();
+    const { isLoading } = useApi();
     const handleSend = async () => {
         if (!message.trim()) return;
         const socket = getSocket();
@@ -31,21 +31,6 @@ export function MessageInput({
                 message: message.trim(),
                 senderId: userId,
             });
-
-            // const response = await makeRequest(
-            //     "POST",
-            //     "/rooms/sendmessage",
-            //     {
-            //         content: message.trim(),
-            //         conversationId: activeContactId,
-            //         userId,
-            //     },
-            //     "Error sending message",
-            //     true,
-            //     false
-            // );
-
-            // if (!response) return;
 
             setMessage("");
         } catch (error) {

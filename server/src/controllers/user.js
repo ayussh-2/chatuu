@@ -5,7 +5,7 @@ import {
     handleRequest,
     generateRandomChars,
     formatTime,
-    getTimeFromFormat,
+    decodeToken,
 } from "../utils/utils.js";
 import { createRoomHandler } from "./rooms.js";
 import redisController from "../utils/redis/redisController.js";
@@ -351,7 +351,17 @@ async function manageFriendRequest(req, res) {
 
 async function getFriendRequests(req, res) {
     return handleRequest(res, async () => {
-        const { userId } = req.body;
+        const token = req.headers.authorization.split(" ")[1];
+        const userToken = decodeToken(token);
+        if (!userToken.id) {
+            return {
+                statusCode: 403,
+                message: "Unauthorized",
+                data: null,
+            };
+        }
+
+        const userId = userToken.id;
 
         const cacheKey = `friend_requests:${userId}`;
 
@@ -396,7 +406,17 @@ async function getFriendRequests(req, res) {
 
 async function getFriends(req, res) {
     return handleRequest(res, async () => {
-        const { userId } = req.body;
+        const token = req.headers.authorization.split(" ")[1];
+        const userToken = decodeToken(token);
+        if (!userToken.id) {
+            return {
+                statusCode: 403,
+                message: "Unauthorized",
+                data: null,
+            };
+        }
+
+        const userId = userToken.id;
 
         const cacheKey = `friends:${userId}`;
 
@@ -469,7 +489,17 @@ async function getFriends(req, res) {
 
 async function getNonFriends(req, res) {
     return handleRequest(res, async () => {
-        const { userId } = req.body;
+        const token = req.headers.authorization.split(" ")[1];
+        const userToken = decodeToken(token);
+        if (!userToken.id) {
+            return {
+                statusCode: 403,
+                message: "Unauthorized",
+                data: null,
+            };
+        }
+
+        const userId = userToken.id;
 
         const cacheKey = `non_friends:${userId}`;
         const { data: transformedNonFriends, cached } =
@@ -579,7 +609,17 @@ async function getNonFriends(req, res) {
 
 async function getRecentChats(req, res) {
     return handleRequest(res, async () => {
-        const { userId } = req.body;
+        const token = req.headers.authorization.split(" ")[1];
+        const userToken = decodeToken(token);
+        if (!userToken.id) {
+            return {
+                statusCode: 403,
+                message: "Unauthorized",
+                data: null,
+            };
+        }
+
+        const userId = userToken.id;
 
         if (!userId) {
             return {
@@ -726,11 +766,22 @@ async function getRecentChats(req, res) {
 
 async function updateProfile(req, res) {
     return handleRequest(res, async () => {
-        const { userId, username, name, email } = req.body;
+        const { username, name, email } = req.body;
+        const token = req.headers.authorization.split(" ")[1];
+        const userToken = decodeToken(token);
+
+        if (!userToken.id) {
+            return {
+                statusCode: 403,
+                message: "Unauthorized",
+                data: null,
+            };
+        }
+
         const preExisting = await prisma.user.findFirst({
             where: {
                 OR: [{ username }, { email }],
-                NOT: { id: userId },
+                NOT: { id: userToken.id },
             },
         });
         if (preExisting) {

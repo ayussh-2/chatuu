@@ -29,7 +29,7 @@ export default function FriendsPage() {
                     makeRequest(
                         "POST",
                         "/user/friends",
-                        { userId: user.userId },
+                        {},
                         "Error fetching friends",
                         true,
                         false
@@ -37,7 +37,7 @@ export default function FriendsPage() {
                     makeRequest(
                         "POST",
                         "/user/requests",
-                        { userId: user.userId },
+                        {},
                         "Error fetching friend requests",
                         true,
                         false
@@ -45,9 +45,7 @@ export default function FriendsPage() {
                     makeRequest(
                         "POST",
                         "/user/non-friends",
-                        {
-                            userId: user.userId,
-                        },
+                        {},
                         "Error fetching users",
                         true,
                         false
