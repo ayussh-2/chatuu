@@ -4,6 +4,7 @@ import Loader from "@/components/loader/Loader";
 import { ProfileDetails } from "@/components/profile/profile-details";
 import { ProfileHeader } from "@/components/profile/profile-header";
 import { useApi } from "@/hooks/use-Api";
+import useUser from "@/hooks/use-user";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 
@@ -14,6 +15,7 @@ export default function ProfilePage({
 }) {
     const { isLoading, makeRequest } = useApi();
     const [user, setUser] = useState(null);
+    const loggedInUser = useUser();
 
     async function getUserProfile() {
         if (!params.userid) return;
@@ -47,7 +49,11 @@ export default function ProfilePage({
                 {!isLoading && user ? (
                     <>
                         <ProfileHeader user={user} />
-                        <ProfileDetails />
+                        <ProfileDetails
+                            isLoggedInUser={
+                                loggedInUser?.userId === parseInt(params.userid)
+                            }
+                        />
                     </>
                 ) : (
                     <h2>Profile not found</h2>
