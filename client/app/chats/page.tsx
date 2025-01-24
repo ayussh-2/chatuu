@@ -42,7 +42,7 @@ export default function Home() {
         const response = await makeRequest(
             "POST",
             "/user/chats",
-            { userId: user?.userId },
+            {},
             "Some Error occoured while fetching chats",
             true,
             false
